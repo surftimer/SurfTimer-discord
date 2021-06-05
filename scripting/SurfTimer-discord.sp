@@ -5,6 +5,7 @@
 #include <discord>
 #include <steamworks>
 #include <smjansson>
+#include <colorvariables>
 #pragma newdecls required
 #pragma semicolon 1
 
@@ -19,7 +20,6 @@ public Plugin myinfo =
 };
 
 ConVar g_cvWebhook;
-ConVar g_cvThumbnailUrlRoot;
 ConVar g_cvMainUrlRoot;
 ConVar g_cvMention;
 ConVar g_cvBotUsername;
@@ -43,7 +43,6 @@ public void OnPluginStart()
 	g_cvMention = CreateConVar("sm_surftimer_discord_mention", "@here", "Optional discord mention to notify users.");
 	g_cvMainEmbedColor = CreateConVar("sm_surftimer_discord_main_embed_color", "#00ffff", "Color of embed for when main wr is beaten");
 	g_cvBonusEmbedColor = CreateConVar("sm_surftimer_discord_bonus_embed_color", "#ff0000", "Color of embed for when bonus wr is beaten");
-	g_cvThumbnailUrlRoot = CreateConVar("sm_surftimer_discord_thumbnail_url_root", "https://raw.githubusercontent.com/Sayt123/SurfMapPics/master/csgo/", "The base url of where the Discord images are stored. Leave blank to disable.");
 	g_cvMainUrlRoot = CreateConVar("sm_surftimer_discord_main_url_root", "https://raw.githubusercontent.com/Sayt123/SurfMapPics/master/csgo/", "The base url of where the Discord images are stored. Leave blank to disable.");
 	g_cvBotUsername = CreateConVar("sm_surftimer_discord_username", "SurfTimer BOT", "Username of the bot");
 	g_cvFooterUrl = CreateConVar("sm_surftimer_discord_footer_url", "https://images-ext-1.discordapp.net/external/tfTL-r42Kv1qP4FFY6sQYDT1BBA2fXzDjVmcknAOwNI/https/images-ext-2.discordapp.net/external/3K6ho0iMG_dIVSlaf0hFluQFRGqC2jkO9vWFUlWYOnM/https/images-ext-2.discordapp.net/external/aO9crvExsYt5_mvL72MFLp92zqYJfTnteRqczxg7wWI/https/discordsl.com/assets/img/img.png", "The url of the footer icon, leave blank to disable.");
@@ -85,8 +84,10 @@ public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] n
 
 public Action CommandDiscordTest(int client, int args)
 {
+	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending main record test message.");
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", -1);
-	PrintToChat(client, "[SurfTimer-Discord] Sending the message.");
+	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
+	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", 1);
 	return Plugin_Handled;
 }
 
@@ -150,7 +151,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 
 		char szTitle[256];
 		if(bonusGroup == -1) {
-			Format(szTitle, sizeof( szTitle ), "__**New World Record**__ | **%s** - **%s**", g_szCurrentMap, style);
+			Format(szTitle, sizeof( szTitle ), "__**New World Record**__ | **%s** - **%s**", g_szCurrentMap, szPlayerStyle);
 		} else {
 			Format(szTitle, sizeof( szTitle ), "__**New Bonus #%i World Record**__ | **%s** - **%s**", bonusGroup, g_szCurrentMap, szPlayerStyle);
 		}
@@ -171,15 +172,11 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 
 		char szUrlMain[1024];
 		GetConVarString(g_cvMainUrlRoot, szUrlMain, 1024);
-		char szUrlThumb[1024];
-		GetConVarString(g_cvThumbnailUrlRoot, szUrlThumb, 1024);
-		if(StrEqual(g_szPictureURL, ""))
-			Embed.SetThumb(szUrlThumb);
-		else
-		{
-			Embed.SetImage(szUrlMain);
+		StrCat(szUrlMain, sizeof szUrlMain, g_szCurrentMap);
+		StrCat(szUrlMain, sizeof szUrlMain, ".jpg");
+		Embed.SetImage(szUrlMain);
+		if(!StrEqual(g_szPictureURL, ""))
 			Embed.SetThumb(g_szPictureURL);
-		}
 
 		char szFooterUrl[1024];
 		GetConVarString(g_cvFooterUrl, szFooterUrl, sizeof szFooterUrl);
