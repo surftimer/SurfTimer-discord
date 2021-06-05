@@ -1,11 +1,11 @@
-#include <sourcemod>
-#include <sdktools>
-#include <sdkhooks>
-#include <surftimer>
-#include <discord>
-#include <steamworks>
-#include <smjansson>
 #include <colorvariables>
+#include <discord>
+#include <sdkhooks>
+#include <sdktools>
+#include <smjansson>
+#include <sourcemod>
+#include <steamworks>
+#include <surftimer>
 #pragma newdecls required
 #pragma semicolon 1
 
@@ -19,6 +19,7 @@ public Plugin myinfo =
 	url = "https://github.com/Sarrus1/SurfTimer-discord"
 };
 
+
 ConVar g_cvWebhook;
 ConVar g_cvMainUrlRoot;
 ConVar g_cvMention;
@@ -29,6 +30,7 @@ ConVar g_cvBonusEmbedColor;
 ConVar g_cvSteamWebAPIKey;
 ConVar g_cvHostname;
 ConVar g_cvKSFStyle;
+ConVar g_cvBonusImage;
 
 char g_szHostname[256];
 char g_szApiKey[256];
@@ -47,11 +49,12 @@ public void OnPluginStart()
 	g_cvBotUsername = CreateConVar("sm_surftimer_discord_username", "SurfTimer BOT", "Username of the bot");
 	g_cvFooterUrl = CreateConVar("sm_surftimer_discord_footer_url", "https://images-ext-1.discordapp.net/external/tfTL-r42Kv1qP4FFY6sQYDT1BBA2fXzDjVmcknAOwNI/https/images-ext-2.discordapp.net/external/3K6ho0iMG_dIVSlaf0hFluQFRGqC2jkO9vWFUlWYOnM/https/images-ext-2.discordapp.net/external/aO9crvExsYt5_mvL72MFLp92zqYJfTnteRqczxg7wWI/https/discordsl.com/assets/img/img.png", "The url of the footer icon, leave blank to disable.");
 	g_cvSteamWebAPIKey = CreateConVar("sm_surftimer_discord_steam_api_key", "", "Allows the use of the player profile picture, leave blank to disable. The key can be obtained here: https://steamcommunity.com/dev/apikey", FCVAR_PROTECTED);
+	g_cvBonusImage = CreateConVar("sm_surftimer_discord_bonus_image", "0", "Do bonuses have a custom image such as surf_ivory_b1.jpg (1) or not (0).", _, true, 0.0, true, 1.0);
 	g_cvKSFStyle = CreateConVar("sm_surftimer_discord_announcement", "0", "Use the KSF style for announcements (1) or the regular style (0)", _, true, 0.0, true, 1.0);
 	g_cvHostname = FindConVar("hostname");
 	g_cvHostname.GetString(g_szHostname, sizeof g_szHostname);
 	g_cvHostname.AddChangeHook(OnConVarChanged);
-	
+
 	RegAdminCmd("sm_ck_discordtest", CommandDiscordTest, ADMFLAG_ROOT, "Test the discord announcement");
 
 	GetConVarString(g_cvSteamWebAPIKey, g_szApiKey, sizeof g_szApiKey);
@@ -64,18 +67,15 @@ public void OnAllPluginsLoaded()
 	g_bIsSurfTimerEnabled = LibraryExists("surftimer");
 }
 
-
 public void OnLibraryAdded(const char[] name)
 {
 	g_bIsSurfTimerEnabled = StrEqual(name, "surftimer") ? true : g_bIsSurfTimerEnabled;
 }
 
-
 public void OnLibraryRemoved(const char[] name)
 {
 	g_bIsSurfTimerEnabled = StrEqual(name, "surftimer") ? false : g_bIsSurfTimerEnabled;
 }
-
 
 public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
 {
@@ -103,7 +103,7 @@ public void surftimer_OnNewRecord(int client, int style, char[] time, char[] tim
 	if(!StrEqual(g_szApiKey, ""))
 		GetProfilePictureURL(client, style, time, timeDif, bonusGroup);
 	else
-		sendDiscordAnnouncement(client,style, time, timeDif, bonusGroup);
+		sendDiscordAnnouncement(client, style, time, timeDif, bonusGroup);
 }
 
 stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] szTimeDif, int bonusGroup)
@@ -112,7 +112,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 	char webhook[1024], webhookName[1024];
 	GetConVarString(g_cvWebhook, webhook, 1024);
 	GetConVarString(g_cvBotUsername, webhookName, 1024);
-	if (StrEqual(webhook, ""))
+	if(StrEqual(webhook, ""))
 	{
 		PrintToServer("[SurfTimer-Discord] No webhook specified, aborting.");
 		return;
@@ -124,36 +124,39 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 	Format(szPlayerID, sizeof szPlayerID, "[%s](https://steamcommunity.com/profiles/%s)", szName, szSteamId64);
 
 	//Test which style to use
-	if (!g_cvKSFStyle.BoolValue)
+	if(!g_cvKSFStyle.BoolValue)
 	{
 		DiscordWebHook hook = new DiscordWebHook(webhook);
 		char szMention[128];
 		hook.SlackMode = true;
 		GetConVarString(g_cvMention, szMention, 128);
-		if (!StrEqual(szMention, "")) //Checks if mention is disabled
+		if(!StrEqual(szMention, "")) //Checks if mention is disabled
 		{
 			hook.SetContent(szMention);
 		}
 		hook.SetUsername(webhookName);
 
 		char szPlayerStyle[128];
-		switch (style)
+		switch(style)
 		{
-			case 0: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Normal");
-			case 1: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Sideways");
-			case 2: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Half Sideways");
-			case 3: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Backwards");
-			case 4: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Low Gravity");
-			case 5: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Slow Motion");
-			case 6: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Fast Forward");
-			case 7: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Free Style");
+		case 0: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Normal");
+		case 1: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Sideways");
+		case 2: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Half Sideways");
+		case 3: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Backwards");
+		case 4: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Low Gravity");
+		case 5: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Slow Motion");
+		case 6: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Fast Forward");
+		case 7: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Free Style");
 		}
 
 		char szTitle[256];
-		if(bonusGroup == -1) {
-			Format(szTitle, sizeof( szTitle ), "__**New World Record**__ | **%s** - **%s**", g_szCurrentMap, szPlayerStyle);
-		} else {
-			Format(szTitle, sizeof( szTitle ), "__**New Bonus #%i World Record**__ | **%s** - **%s**", bonusGroup, g_szCurrentMap, szPlayerStyle);
+		if(bonusGroup == -1)
+		{
+			Format(szTitle, sizeof(szTitle), "__**New World Record**__ | **%s** - **%s**", g_szCurrentMap, szPlayerStyle);
+		}
+		else
+		{
+			Format(szTitle, sizeof(szTitle), "__**New Bonus #%i World Record**__ | **%s** - **%s**", bonusGroup, g_szCurrentMap, szPlayerStyle);
 		}
 
 		//Create the embed message
@@ -173,6 +176,14 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		char szUrlMain[1024];
 		GetConVarString(g_cvMainUrlRoot, szUrlMain, 1024);
 		StrCat(szUrlMain, sizeof szUrlMain, g_szCurrentMap);
+		if(g_cvBonusImage.BoolValue && bonusGroup != -1)
+		{
+			char szGroup[8];
+			IntToString(bonusGroup, szGroup, sizeof szGroup);
+			StrCat(szUrlMain, sizeof(szUrlMain), "_b");
+			StrCat(szUrlMain, sizeof(szUrlMain), szGroup);
+		}
+
 		StrCat(szUrlMain, sizeof szUrlMain, ".jpg");
 		Embed.SetImage(szUrlMain);
 		if(!StrEqual(g_szPictureURL, ""))
@@ -180,11 +191,11 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 
 		char szFooterUrl[1024];
 		GetConVarString(g_cvFooterUrl, szFooterUrl, sizeof szFooterUrl);
-		if (!StrEqual(szFooterUrl, ""))
-		Embed.SetFooterIcon(szFooterUrl);
+		if(!StrEqual(szFooterUrl, ""))
+			Embed.SetFooterIcon(szFooterUrl);
 		char buffer[1000];
 		Format(buffer, sizeof buffer, "Server: %s", g_szHostname);
-		Embed.SetFooter( buffer );
+		Embed.SetFooter(buffer);
 
 		//Send the message
 		hook.Embed(Embed);
@@ -248,7 +259,7 @@ stock void OnResponseReceived(Handle hRequest, bool bFailure, bool bRequestSucce
 	ReadPackString(pack, szTimeDif, sizeof szTimeDif);
 	int bonusGroup = pack.ReadCell();
 
-	if (eStatusCode != k_EHTTPStatusCode200OK || !bRequestSuccessful || bFailure)
+	if(eStatusCode != k_EHTTPStatusCode200OK || !bRequestSuccessful || bFailure)
 	{
 		PrintToServer("[SurfTimer-Discord] There was an error in the Steam API's response. Is your API key valid ?");
 		sendDiscordAnnouncement(client, style, szTime, szTimeDif, bonusGroup);
@@ -256,7 +267,7 @@ stock void OnResponseReceived(Handle hRequest, bool bFailure, bool bRequestSucce
 	}
 	int iSize;
 	SteamWorks_GetHTTPResponseBodySize(hRequest, iSize);
-	if (iSize >= 2048)
+	if(iSize >= 2048)
 		return;
 	char[] szData = new char[iSize];
 	SteamWorks_GetHTTPResponseBodyData(hRequest, szData, iSize);
@@ -266,7 +277,7 @@ stock void OnResponseReceived(Handle hRequest, bool bFailure, bool bRequestSucce
 	int playerslen = json_array_size(hPlayers);
 
 	Handle hPlayer;
-	for (int i = 0; i < playerslen; i++)
+	for(int i = 0; i < playerslen; i++)
 	{
 		hPlayer = json_array_get(hPlayers, i);
 		json_object_get_string(hPlayer, "avatarmedium", g_szPictureURL, sizeof g_szPictureURL);
@@ -285,15 +296,14 @@ stock void RemoveWorkshop(char[] szMapName, int len)
 
 	// Return if "workshop/" is not in the mapname
 	if(ReplaceString(szMapName, len, "workshop/", "", true) != 1)
-	return;
+		return;
 
 	// Find the index of the last /
 	do
 	{
 		szBuffer[i] = szMapName[i];
 		i++;
-	}
-	while(szMapName[i] != szCompare[0]);
+	} while(szMapName[i] != szCompare[0]);
 	szBuffer[i] = szCompare[0];
 	ReplaceString(szMapName, len, szBuffer, "", true);
 }
