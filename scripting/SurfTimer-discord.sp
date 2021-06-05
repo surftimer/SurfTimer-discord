@@ -3,6 +3,8 @@
 #include <sdkhooks>
 #include <surftimer>
 #include <discord>
+#include <steamworks>
+#include <smjansson>
 #pragma newdecls required
 #pragma semicolon 1
 
@@ -32,6 +34,7 @@ ConVar g_cvKSFStyle;
 char g_szHostname[256];
 char g_szApiKey[256];
 char g_szCurrentMap[256];
+char g_szPictureURL[512];
 
 bool g_bIsSurfTimerEnabled = false;
 
@@ -47,7 +50,7 @@ public void OnPluginStart()
 	g_cvMainUrlRoot = CreateConVar("sm_surftimer_discord_main_url_root", "https://image.gametracker.com/images/maps/160x120/csgo/", "The base url of where the Discord images are stored. Leave blank to disable.");
 	g_cvBotUsername = CreateConVar("sm_surftimer_discord_username", "", "Username of the bot");
 	g_cvFooterUrl = CreateConVar("sm_surftimer_discord_footer_url", "https://images-ext-1.discordapp.net/external/tfTL-r42Kv1qP4FFY6sQYDT1BBA2fXzDjVmcknAOwNI/https/images-ext-2.discordapp.net/external/3K6ho0iMG_dIVSlaf0hFluQFRGqC2jkO9vWFUlWYOnM/https/images-ext-2.discordapp.net/external/aO9crvExsYt5_mvL72MFLp92zqYJfTnteRqczxg7wWI/https/discordsl.com/assets/img/img.png", "The url of the footer icon, leave blank to disable.");
-	g_cvSteamWebAPIKey = CreateConVar("kzt_discord_steam_api_key", "", "Allows the use of the player profile picture, leave blank to disable. The key can be obtained here: https://steamcommunity.com/dev/apikey", FCVAR_PROTECTED);
+	g_cvSteamWebAPIKey = CreateConVar("sm_surftimer_discord_steam_api_key", "", "Allows the use of the player profile picture, leave blank to disable. The key can be obtained here: https://steamcommunity.com/dev/apikey", FCVAR_PROTECTED);
 	g_cvKSFStyle = CreateConVar("sm_ksf_style_announcement", "", "Use the KSF style for announcements (1) or the regular style (0)", _, true, 0.0, true, 1.0);
 	g_cvHostname = FindConVar("hostname");
 	g_cvHostname.GetString( g_szHostname, sizeof( g_szHostname ) );
@@ -84,7 +87,8 @@ public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] n
 
 public Action CommandDiscordTest(int client, int args)
 {
-	sendDiscordAnnouncement(client, "00:00:00", "-00:00:00");
+	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", -1);
+	PrintToChat(client, "[SurfTimer-Discord] Sending the message.");
 	return Plugin_Handled;
 }
 
@@ -97,7 +101,10 @@ public void OnMapStart()
 
 public void surftimer_OnNewRecord(int client, int style, char[] time, char[] timeDif, int bonusGroup)
 {
-	sendDiscordAnnouncement(client, time, timeDif);
+	if(!StrEqual(g_szApiKey, ""))
+		GetProfilePictureURL(client, time, timeDif);
+	else
+		sendDiscordAnnouncement(client, time, timeDif);
 }
 
 stock void sendDiscordAnnouncement(int client, char[] szTime, char[] szTimeDif)
@@ -149,25 +156,16 @@ stock void sendDiscordAnnouncement(int client, char[] szTime, char[] szTimeDif)
 		Embed.AddField("Time", szTimeDiscord, true);
 		Embed.AddField("Map", g_szCurrentMap, true);
 
-		//Send the main image of the map
 		char szUrlMain[1024];
 		GetConVarString(g_cvMainUrlRoot, szUrlMain, 1024);
-		if (!StrEqual(szUrlMain, ""))
-		{
-			StrCat(szUrlMain, sizeof szUrlMain, g_szCurrentMap);
-			StrCat(szUrlMain, sizeof szUrlMain, ".jpg");
-			Embed.SetImage(szUrlMain);
-		}
-
-
-		//Send the thumb image of the map
 		char szUrlThumb[1024];
 		GetConVarString(g_cvThumbnailUrlRoot, szUrlThumb, 1024);
-		if (!StrEqual(szUrlThumb, ""))
-		{
-			StrCat(szUrlThumb, sizeof szUrlThumb, g_szCurrentMap);
-			StrCat(szUrlThumb, sizeof szUrlThumb, ".jpg");
+		if(StrEqual(g_szPictureURL, ""))
 			Embed.SetThumb(szUrlThumb);
+		else
+		{
+			Embed.SetImage(szUrlMain);
+			Embed.SetThumb(g_szPictureURL);
 		}
 
 		char szFooterUrl[1024];
@@ -201,6 +199,72 @@ stock void sendDiscordAnnouncement(int client, char[] szTime, char[] szTimeDif)
 		hook.Send();
 		delete hook;
 	}
+}
+
+stock void GetProfilePictureURL(int client, char[] time, char[] timeDif)
+{
+	DataPack pack = new DataPack();
+	pack.WriteCell(client);
+	pack.WriteString(time);
+	pack.WriteString(timeDif);
+	pack.Reset();
+
+	char szSteamID[64];
+	GetClientAuthId(client, AuthId_SteamID64, szSteamID, sizeof szSteamID, true);
+
+	char szURL[256] = "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/";
+	Handle request = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, szURL);
+	SteamWorks_SetHTTPRequestNetworkActivityTimeout(request, 10);
+	SteamWorks_SetHTTPRequestGetOrPostParameter(request, "key", g_szApiKey);
+	SteamWorks_SetHTTPRequestGetOrPostParameter(request, "steamids", szSteamID);
+	SteamWorks_SetHTTPRequestGetOrPostParameter(request, "format", "json");
+	SteamWorks_SetHTTPCallbacks(request, OnResponseReceived);
+	SteamWorks_SetHTTPRequestContextValue(request, pack);
+	bool bIsSentRequest = SteamWorks_SendHTTPRequest(request);
+	if(!bIsSentRequest)
+		PrintToServer("[SurfTimer-Discord] There was an error when sending the request to the Steam API.");
+	PrintToConsoleAll("Request sent");
+}
+
+stock void OnResponseReceived(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, DataPack pack)
+{
+	char szTime[32];
+	char szTimeDif[32];
+	pack.Reset();
+	int client = pack.ReadCell();
+	ReadPackString(pack, szTime, sizeof szTime);
+	ReadPackString(pack, szTimeDif, sizeof szTimeDif);
+
+	if (eStatusCode != k_EHTTPStatusCode200OK || !bRequestSuccessful || bFailure)
+	{
+		PrintToServer("[SurfTimer-Discord] There was an error in the Steam API's response. Is your API key valid ?");
+		sendDiscordAnnouncement(client, szTime, szTimeDif);
+		return;
+	}
+	PrintToServer("Request received");
+	int iSize;
+	SteamWorks_GetHTTPResponseBodySize(hRequest, iSize);
+	if (iSize >= 2048)
+		return;
+	char[] szData = new char[iSize];
+	SteamWorks_GetHTTPResponseBodyData(hRequest, szData, iSize);
+	PrintToServer("The data %s", szData);
+	Handle hData = json_load(szData);
+	Handle hResponse = json_object_get(hData, "response");
+	Handle hPlayers = json_object_get(hResponse, "players");
+	int playerslen = json_array_size(hPlayers);
+
+	Handle hPlayer;
+	for (int i = 0; i < playerslen; i++)
+	{
+		hPlayer = json_array_get(hPlayers, i);
+		json_object_get_string(hPlayer, "avatarmedium", g_szPictureURL, sizeof g_szPictureURL);
+	}
+	delete hData;
+	delete hResponse;
+	delete hPlayer;
+	delete hPlayer;
+	sendDiscordAnnouncement(client, szTime, szTimeDif);
 }
 
 stock void RemoveWorkshop(char[] szMapName, int len)
