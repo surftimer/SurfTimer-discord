@@ -11,9 +11,9 @@
 
 public Plugin myinfo =
 {
-	name = "SurfTimer-discord",
+	name = "SurfTimer-Discord",
 	author = "Sarrus",
-	description = "",
+	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
 	version = "1.0",
 	url = "https://github.com/Sarrus1/SurfTimer-discord"
 };
@@ -21,7 +21,6 @@ public Plugin myinfo =
 ConVar g_cvWebhook;
 ConVar g_cvThumbnailUrlRoot;
 ConVar g_cvMainUrlRoot;
-ConVar g_cvTitle;
 ConVar g_cvMention;
 ConVar g_cvBotUsername;
 ConVar g_cvFooterUrl;
@@ -40,21 +39,20 @@ bool g_bIsSurfTimerEnabled = false;
 
 public void OnPluginStart()
 {
-	//TODO: g_cvMinimumrecords = CreateConVar("sm_surftimer_discord_min_record", "0", "Minimum number of records before they are sent to the discord channel.", _, true, 0.0);
 	g_cvWebhook = CreateConVar("sm_surftimer_discord_webhook", "", "The webhook to the discord channel where you want record messages to be sent.", FCVAR_PROTECTED);
 	g_cvMention = CreateConVar("sm_surftimer_discord_mention", "@here", "Optional discord mention to notify users.");
 	g_cvMainEmbedColor = CreateConVar("sm_surftimer_discord_main_embed_color", "#00ffff", "Color of embed for when main wr is beaten");
 	g_cvBonusEmbedColor = CreateConVar("sm_surftimer_discord_bonus_embed_color", "#ff0000", "Color of embed for when bonus wr is beaten");
-	g_cvTitle = CreateConVar("sm_surftimer_discord_title", "A new record has been set.", "Title of the discord announcement");
-	g_cvThumbnailUrlRoot = CreateConVar("sm_surftimer_discord_thumbnail_url_root", "https://image.gametracker.com/images/maps/160x120/csgo/", "The base url of where the Discord images are stored. Leave blank to disable.");
-	g_cvMainUrlRoot = CreateConVar("sm_surftimer_discord_main_url_root", "https://image.gametracker.com/images/maps/160x120/csgo/", "The base url of where the Discord images are stored. Leave blank to disable.");
-	g_cvBotUsername = CreateConVar("sm_surftimer_discord_username", "", "Username of the bot");
+	g_cvThumbnailUrlRoot = CreateConVar("sm_surftimer_discord_thumbnail_url_root", "https://raw.githubusercontent.com/Sayt123/SurfMapPics/master/csgo/", "The base url of where the Discord images are stored. Leave blank to disable.");
+	g_cvMainUrlRoot = CreateConVar("sm_surftimer_discord_main_url_root", "https://raw.githubusercontent.com/Sayt123/SurfMapPics/master/csgo/", "The base url of where the Discord images are stored. Leave blank to disable.");
+	g_cvBotUsername = CreateConVar("sm_surftimer_discord_username", "SurfTimer BOT", "Username of the bot");
 	g_cvFooterUrl = CreateConVar("sm_surftimer_discord_footer_url", "https://images-ext-1.discordapp.net/external/tfTL-r42Kv1qP4FFY6sQYDT1BBA2fXzDjVmcknAOwNI/https/images-ext-2.discordapp.net/external/3K6ho0iMG_dIVSlaf0hFluQFRGqC2jkO9vWFUlWYOnM/https/images-ext-2.discordapp.net/external/aO9crvExsYt5_mvL72MFLp92zqYJfTnteRqczxg7wWI/https/discordsl.com/assets/img/img.png", "The url of the footer icon, leave blank to disable.");
 	g_cvSteamWebAPIKey = CreateConVar("sm_surftimer_discord_steam_api_key", "", "Allows the use of the player profile picture, leave blank to disable. The key can be obtained here: https://steamcommunity.com/dev/apikey", FCVAR_PROTECTED);
-	g_cvKSFStyle = CreateConVar("sm_ksf_style_announcement", "", "Use the KSF style for announcements (1) or the regular style (0)", _, true, 0.0, true, 1.0);
+	g_cvKSFStyle = CreateConVar("sm_surftimer_discord_announcement", "0", "Use the KSF style for announcements (1) or the regular style (0)", _, true, 0.0, true, 1.0);
 	g_cvHostname = FindConVar("hostname");
-	g_cvHostname.GetString( g_szHostname, sizeof( g_szHostname ) );
-	g_cvHostname.AddChangeHook( OnConVarChanged );
+	g_cvHostname.GetString(g_szHostname, sizeof g_szHostname);
+	g_cvHostname.AddChangeHook(OnConVarChanged);
+	
 	RegAdminCmd("sm_ck_discordtest", CommandDiscordTest, ADMFLAG_ROOT, "Test the discord announcement");
 
 	GetConVarString(g_cvSteamWebAPIKey, g_szApiKey, sizeof g_szApiKey);
@@ -102,12 +100,12 @@ public void OnMapStart()
 public void surftimer_OnNewRecord(int client, int style, char[] time, char[] timeDif, int bonusGroup)
 {
 	if(!StrEqual(g_szApiKey, ""))
-		GetProfilePictureURL(client, time, timeDif);
+		GetProfilePictureURL(client, style, time, timeDif, bonusGroup);
 	else
-		sendDiscordAnnouncement(client, time, timeDif);
+		sendDiscordAnnouncement(client,style, time, timeDif, bonusGroup);
 }
 
-stock void sendDiscordAnnouncement(int client, char[] szTime, char[] szTimeDif)
+stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] szTimeDif, int bonusGroup)
 {
 	//Get the WebHook
 	char webhook[1024], webhookName[1024];
@@ -137,15 +135,31 @@ stock void sendDiscordAnnouncement(int client, char[] szTime, char[] szTimeDif)
 		}
 		hook.SetUsername(webhookName);
 
-		//Format the message
+		char szPlayerStyle[128];
+		switch (style)
+		{
+			case 0: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Normal");
+			case 1: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Sideways");
+			case 2: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Half Sideways");
+			case 3: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Backwards");
+			case 4: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Low Gravity");
+			case 5: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Slow Motion");
+			case 6: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Fast Forward");
+			case 7: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Free Style");
+		}
+
 		char szTitle[256];
-		GetConVarString(g_cvTitle, szTitle, 256);
-		ReplaceString(szTitle, sizeof szTitle, "{Server_Name}", g_szHostname);
+		if(bonusGroup == -1) {
+			Format(szTitle, sizeof( szTitle ), "__**New World Record**__ | **%s** - **%s**", g_szCurrentMap, style);
+		} else {
+			Format(szTitle, sizeof( szTitle ), "__**New Bonus #%i World Record**__ | **%s** - **%s**", bonusGroup, g_szCurrentMap, szPlayerStyle);
+		}
+
 		//Create the embed message
 		MessageEmbed Embed = new MessageEmbed();
 
 		char szColor[128];
-		GetConVarString(g_cvMainEmbedColor, szColor, 128);
+		GetConVarString(bonusGroup == -1 ? g_cvMainEmbedColor : g_cvBonusEmbedColor, szColor, 128);
 
 		char szTimeDiscord[128];
 		Format(szTimeDiscord, sizeof(szTimeDiscord), "%s (%s)", szTime, szTimeDif);
@@ -154,7 +168,6 @@ stock void sendDiscordAnnouncement(int client, char[] szTime, char[] szTimeDif)
 		Embed.SetTitle(szTitle);
 		Embed.AddField("Player", szPlayerID, true);
 		Embed.AddField("Time", szTimeDiscord, true);
-		Embed.AddField("Map", g_szCurrentMap, true);
 
 		char szUrlMain[1024];
 		GetConVarString(g_cvMainUrlRoot, szUrlMain, 1024);
@@ -201,12 +214,14 @@ stock void sendDiscordAnnouncement(int client, char[] szTime, char[] szTimeDif)
 	}
 }
 
-stock void GetProfilePictureURL(int client, char[] time, char[] timeDif)
+stock void GetProfilePictureURL(int client, int style, char[] time, char[] timeDif, int bonusGroup)
 {
 	DataPack pack = new DataPack();
 	pack.WriteCell(client);
+	pack.WriteCell(style);
 	pack.WriteString(time);
 	pack.WriteString(timeDif);
+	pack.WriteCell(bonusGroup);
 	pack.Reset();
 
 	char szSteamID[64];
@@ -223,7 +238,6 @@ stock void GetProfilePictureURL(int client, char[] time, char[] timeDif)
 	bool bIsSentRequest = SteamWorks_SendHTTPRequest(request);
 	if(!bIsSentRequest)
 		PrintToServer("[SurfTimer-Discord] There was an error when sending the request to the Steam API.");
-	PrintToConsoleAll("Request sent");
 }
 
 stock void OnResponseReceived(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, DataPack pack)
@@ -232,23 +246,23 @@ stock void OnResponseReceived(Handle hRequest, bool bFailure, bool bRequestSucce
 	char szTimeDif[32];
 	pack.Reset();
 	int client = pack.ReadCell();
+	int style = pack.ReadCell();
 	ReadPackString(pack, szTime, sizeof szTime);
 	ReadPackString(pack, szTimeDif, sizeof szTimeDif);
+	int bonusGroup = pack.ReadCell();
 
 	if (eStatusCode != k_EHTTPStatusCode200OK || !bRequestSuccessful || bFailure)
 	{
 		PrintToServer("[SurfTimer-Discord] There was an error in the Steam API's response. Is your API key valid ?");
-		sendDiscordAnnouncement(client, szTime, szTimeDif);
+		sendDiscordAnnouncement(client, style, szTime, szTimeDif, bonusGroup);
 		return;
 	}
-	PrintToServer("Request received");
 	int iSize;
 	SteamWorks_GetHTTPResponseBodySize(hRequest, iSize);
 	if (iSize >= 2048)
 		return;
 	char[] szData = new char[iSize];
 	SteamWorks_GetHTTPResponseBodyData(hRequest, szData, iSize);
-	PrintToServer("The data %s", szData);
 	Handle hData = json_load(szData);
 	Handle hResponse = json_object_get(hData, "response");
 	Handle hPlayers = json_object_get(hResponse, "players");
@@ -264,7 +278,7 @@ stock void OnResponseReceived(Handle hRequest, bool bFailure, bool bRequestSucce
 	delete hResponse;
 	delete hPlayer;
 	delete hPlayer;
-	sendDiscordAnnouncement(client, szTime, szTimeDif);
+	sendDiscordAnnouncement(client, style, szTime, szTimeDif, bonusGroup);
 }
 
 stock void RemoveWorkshop(char[] szMapName, int len)
