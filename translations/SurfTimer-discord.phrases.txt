@@ -1,0 +1,23 @@
+﻿"Phrases"
+{
+	"CallAdmin Callback"
+	{
+		"en"		"{green}Type your message. Type 'cancel' to abort."
+	}
+	"BugReport Callback"
+	{
+		"en"		"{green}Type your message. Type 'cancel' to abort."
+	}
+	"Cancelled"
+	{
+		"en"		"{green}Cancelled."
+	}
+	"CallAdmin Sent"
+	{
+		"en"		"{green}An admin was called - thanks."
+	}
+	"BugReport Sent"
+	{
+		"en"		"{green}Bug report sent - thanks."
+	}
+}

@@ -20,9 +20,14 @@ public Plugin myinfo =
 };
 
 
-ConVar g_cvWebhook;
+ConVar g_cvAnnounceMainWebhook;
+ConVar g_cvAnnounceBonusWebhook;
+ConVar g_cvReportBugsDiscord;
+ConVar g_cvCallAdminDiscord;
 ConVar g_cvMainUrlRoot;
-ConVar g_cvMention;
+ConVar g_cvAnnounceMention;
+ConVar g_cvBugReportMention;
+ConVar g_cvCallAdminMention;
 ConVar g_cvBotUsername;
 ConVar g_cvFooterUrl;
 ConVar g_cvMainEmbedColor;
@@ -36,13 +41,28 @@ char g_szHostname[256];
 char g_szApiKey[256];
 char g_szCurrentMap[256];
 char g_szPictureURL[512];
+char g_szBugType[MAXPLAYERS + 1][32];
 
 bool g_bIsSurfTimerEnabled = false;
 
+enum WaitingFor
+{
+	None,
+	Calladmin,
+	BugReport
+}
+
+WaitingFor g_iWaitingFor[MAXPLAYERS + 1];
+
 public void OnPluginStart()
 {
-	g_cvWebhook = CreateConVar("sm_surftimer_discord_webhook", "", "The webhook to the discord channel where you want record messages to be sent.", FCVAR_PROTECTED);
-	g_cvMention = CreateConVar("sm_surftimer_discord_mention", "@here", "Optional discord mention to notify users.");
+	g_cvAnnounceMainWebhook = CreateConVar("sm_surftimer_discord_announce_main_webhook", "", "The webhook to the discord channel where you want main record messages to be sent.", FCVAR_PROTECTED);
+	g_cvAnnounceBonusWebhook = CreateConVar("sm_surftimer_discord_announce_bonus_webhook", "", "The webhook to the discord channel where you want bonus record messages to be sent.", FCVAR_PROTECTED);
+	g_cvReportBugsDiscord = CreateConVar("sm_surftimer_discord_report_bug_webhook", "", "The webhook to the discord channel where you want bug report messages to be sent.", FCVAR_PROTECTED);
+	g_cvCallAdminDiscord = CreateConVar("sm_surftimer_discord_calladmin_webhook", "", "The webhook to the discord channel where you want calladmin messages to be sent.", FCVAR_PROTECTED);
+	g_cvAnnounceMention = CreateConVar("sm_surftimer_discord_announce_mention", "@here", "Optional discord mention to ping users when a new record has been set.");
+	g_cvBugReportMention = CreateConVar("sm_surftimer_discord_bug_mention", "@here", "Optional discord mention to notify users when a bug report has been sent.");
+	g_cvCallAdminMention = CreateConVar("sm_surftimer_discord_calladmin_mention", "@here", "Optional discord mention to notify users when a calladmin has been sent.");
 	g_cvMainEmbedColor = CreateConVar("sm_surftimer_discord_main_embed_color", "#00ffff", "Color of embed for when main wr is beaten");
 	g_cvBonusEmbedColor = CreateConVar("sm_surftimer_discord_bonus_embed_color", "#ff0000", "Color of embed for when bonus wr is beaten");
 	g_cvMainUrlRoot = CreateConVar("sm_surftimer_discord_main_url_root", "https://raw.githubusercontent.com/Sayt123/SurfMapPics/master/csgo/", "The base url of where the Discord images are stored. Leave blank to disable.");
@@ -56,10 +76,17 @@ public void OnPluginStart()
 	g_cvHostname.AddChangeHook(OnConVarChanged);
 
 	RegAdminCmd("sm_ck_discordtest", CommandDiscordTest, ADMFLAG_ROOT, "Test the discord announcement");
+	RegConsoleCmd("sm_calladmin", CommandCallAdmin, "Send a calladmin request to a discord server.");
+	RegConsoleCmd("sm_bug", CommandReportBug, "Send a bug report to a discord server.");
+
+	AddCommandListener(SayHook, "say");
+	AddCommandListener(SayHook, "say_team");
 
 	GetConVarString(g_cvSteamWebAPIKey, g_szApiKey, sizeof g_szApiKey);
 
 	AutoExecConfig(true, "SurfTimer-Discord");
+
+	LoadTranslations("SurfTimer-discord.phrases.txt");
 }
 
 public void OnAllPluginsLoaded()
@@ -91,6 +118,194 @@ public Action CommandDiscordTest(int client, int args)
 	return Plugin_Handled;
 }
 
+public Action CommandCallAdmin(int client, int args)
+{
+	CPrintToChat(client, "{blue}[SurfTimer-Discord] %t", "CallAdmin Callback");
+	g_iWaitingFor[client] = Calladmin;
+	return Plugin_Handled;
+}
+
+public Action CommandReportBug(int client, int args)
+{
+	ReportBugMenu(client);
+	return Plugin_Handled;
+}
+
+public void ReportBugMenu(int client)
+{
+	Menu menu = CreateMenu(ReportBugHandler);
+	SetMenuTitle(menu, "Choose a bug type");
+	AddMenuItem(menu, "Map Bug", "Map Bug");
+	AddMenuItem(menu, "SurfTimer Bug", "SurfTimer Bug");
+	AddMenuItem(menu, "Server Bug", "Server Bug");
+	SetMenuExitButton(menu, true);
+	DisplayMenu(menu, client, MENU_TIME_FOREVER);
+}
+
+public int ReportBugHandler(Menu menu, MenuAction action, int param1, int param2)
+{
+	if(action == MenuAction_Select)
+	{
+		GetMenuItem(menu, param2, g_szBugType[param1], 32);
+		g_iWaitingFor[param1] = BugReport;
+		CPrintToChat(param1, "{blue}[SurfTimer-Discord] %t", "BugReport Callback");
+	}
+	else if(action == MenuAction_End)
+		delete menu;
+}
+
+public Action SayHook(int client, const char[] command, int args)
+{
+	if(!IsValidClient(client))
+		return Plugin_Continue;
+
+	if(g_iWaitingFor[client] == None)
+		return Plugin_Continue;
+
+	char szText[1024];
+	GetCmdArgString(szText, sizeof szText);
+
+	StripQuotes(szText);
+	TrimString(szText);
+
+	if(StrEqual(szText, "cancel"))
+	{
+		g_iWaitingFor[client] = None;
+		CPrintToChat(client, "{blue}[SurfTimer-Discord] %t", "Cancelled");
+		return Plugin_Handled;
+	}
+
+	switch(g_iWaitingFor[client])
+	{
+		case Calladmin:
+		{
+			g_iWaitingFor[client] = None;
+			SendCallAdmin(client, szText);
+		}
+		case BugReport:
+		{
+			g_iWaitingFor[client] = None;
+			SendBugReport(client, szText);
+		}
+		default:
+		{
+			return Plugin_Continue;
+		}
+	}
+	return Plugin_Continue;
+}
+
+public void SendBugReport(int iClient, char[] szText)
+{
+	char webhook[1024];
+	GetConVarString(g_cvReportBugsDiscord, webhook, 1024);
+	if(StrEqual(webhook, ""))
+		return;
+
+	// Send Discord Announcement
+	DiscordWebHook hook = new DiscordWebHook(webhook);
+	hook.SlackMode = true;
+
+	char szMention[128];
+	GetConVarString(g_cvBugReportMention, szMention, sizeof szMention);
+	if(!StrEqual(szMention, "")) //Checks if mention is disabled
+	{
+		hook.SetContent(szMention);
+	}
+
+	char szBugTrackerName[64];
+	GetConVarString(g_cvBotUsername, szBugTrackerName, sizeof g_cvBotUsername);
+
+	hook.SetUsername(szBugTrackerName);
+
+	MessageEmbed Embed = new MessageEmbed();
+
+	// Format Title
+	char szTitle[256];
+	Format(szTitle, sizeof szTitle, "Bug Type: %s ║ Server: %s ║ Map: %s", g_szBugType[iClient], g_szHostname, g_szCurrentMap);
+	Embed.SetTitle(szTitle);
+
+	// Format Message
+	char szMessage[512];
+	char szPlayerID[256], szSteamId64[64], szName[MAX_NAME_LENGTH];
+	GetClientName(iClient, szName, sizeof szName);
+	GetClientAuthId(iClient, AuthId_SteamID64, szPlayerID, sizeof szPlayerID);
+	Format(szPlayerID, sizeof szPlayerID, "[%s](https://steamcommunity.com/profiles/%s)", szName, szSteamId64);
+	Format(szMessage, sizeof szMessage, "%s: %s", szPlayerID, szText);
+	Embed.AddField("", szMessage, true);
+
+	// Add Footer
+	char szFooterUrl[1024];
+	GetConVarString(g_cvFooterUrl, szFooterUrl, sizeof szFooterUrl);
+	if(!StrEqual(szFooterUrl, ""))
+		Embed.SetFooterIcon(szFooterUrl);
+	char buffer[1000];
+	Format(buffer, sizeof buffer, "Server: %s", g_szHostname);
+	Embed.SetFooter(buffer);
+
+	hook.Embed(Embed);
+	hook.Send();
+	delete hook;
+
+	CPrintToChat(iClient, "{blue}[SurfTimer-Discord] %t", "BugReport Sent");
+}
+
+public void SendCallAdmin(int iClient, char[] szText)
+{
+	char webhook[1024];
+	GetConVarString(g_cvCallAdminDiscord, webhook, 1024);
+	if(StrEqual(webhook, ""))
+	{
+		PrintToServer("[SurfTimer-Discord] No webhook specified, aborting.");
+		return;
+	}
+
+	// Send Discord Announcement
+	DiscordWebHook hook = new DiscordWebHook(webhook);
+	hook.SlackMode = true;
+
+	char szMention[128];
+	GetConVarString(g_cvCallAdminMention, szMention, sizeof szMention);
+	if(!StrEqual(szMention, "")) //Checks if mention is disabled
+	{
+		hook.SetContent(szMention);
+	}
+	char szCalladminName[64];
+	GetConVarString(g_cvBotUsername, szCalladminName, sizeof szCalladminName);
+
+	hook.SetUsername(szCalladminName);
+
+	MessageEmbed Embed = new MessageEmbed();
+
+	// Format title
+	char szTitle[256];
+	Format(szTitle, sizeof szTitle, "Server: %s ║ Map: %s", g_szHostname, g_szCurrentMap);
+	Embed.SetTitle(szTitle);
+
+	// Format Message
+	char szPlayerID[256], szSteamId64[64], szName[MAX_NAME_LENGTH];
+	GetClientName(iClient, szName, sizeof szName);
+	GetClientAuthId(iClient, AuthId_SteamID64, szPlayerID, sizeof szPlayerID);
+	Format(szPlayerID, sizeof szPlayerID, "[%s](https://steamcommunity.com/profiles/%s)", szName, szSteamId64);
+	Embed.AddField("Reporter", szPlayerID, false);
+	Embed.AddField("", szText, false);
+
+	// Add Footer
+	char szFooterUrl[1024];
+	GetConVarString(g_cvFooterUrl, szFooterUrl, sizeof szFooterUrl);
+	if(!StrEqual(szFooterUrl, ""))
+		Embed.SetFooterIcon(szFooterUrl);
+	char buffer[1000];
+	Format(buffer, sizeof buffer, "Server: %s", g_szHostname);
+	Embed.SetFooter(buffer);
+
+	hook.Embed(Embed);
+	hook.Send();
+	delete hook;
+
+	CPrintToChat(iClient, "{blue}[SurfTimer-Discord] %t", "CallAdmin Sent");
+}
+
 public void OnMapStart()
 {
 	GetCurrentMap(g_szCurrentMap, sizeof g_szCurrentMap);
@@ -110,7 +325,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 {
 	//Get the WebHook
 	char webhook[1024], webhookName[1024];
-	GetConVarString(g_cvWebhook, webhook, 1024);
+	GetConVarString(bonusGroup == 0 ? g_cvAnnounceMainWebhook : g_cvAnnounceBonusWebhook, webhook, 1024);
 	GetConVarString(g_cvBotUsername, webhookName, 1024);
 	if(StrEqual(webhook, ""))
 	{
@@ -118,7 +333,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		return;
 	}
 
-	char szPlayerID[256], szSteamId64[64], szName[128];
+	char szPlayerID[256], szSteamId64[64], szName[MAX_NAME_LENGTH];
 	GetClientName(client, szName, sizeof szName);
 	GetClientAuthId(client, AuthId_SteamID64, szPlayerID, sizeof szPlayerID);
 	Format(szPlayerID, sizeof szPlayerID, "[%s](https://steamcommunity.com/profiles/%s)", szName, szSteamId64);
@@ -129,8 +344,8 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		DiscordWebHook hook = new DiscordWebHook(webhook);
 		char szMention[128];
 		hook.SlackMode = true;
-		GetConVarString(g_cvMention, szMention, 128);
-		if(!StrEqual(szMention, "")) //Checks if mention is disabled
+		GetConVarString(g_cvAnnounceMention, szMention, 128);
+		if(!StrEqual(szMention, ""))
 		{
 			hook.SetContent(szMention);
 		}
@@ -306,4 +521,13 @@ stock void RemoveWorkshop(char[] szMapName, int len)
 	} while(szMapName[i] != szCompare[0]);
 	szBuffer[i] = szCompare[0];
 	ReplaceString(szMapName, len, szBuffer, "", true);
+}
+
+stock bool IsValidClient(int iClient, bool bNoBots = true)
+{
+	if(iClient <= 0 || iClient > MaxClients || !IsClientConnected(iClient) || (bNoBots && IsFakeClient(iClient)))
+	{
+		return false;
+	}
+	return IsClientInGame(iClient);
 }
