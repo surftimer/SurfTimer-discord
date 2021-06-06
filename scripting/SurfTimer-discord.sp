@@ -32,6 +32,8 @@ ConVar g_cvBotUsername;
 ConVar g_cvFooterUrl;
 ConVar g_cvMainEmbedColor;
 ConVar g_cvBonusEmbedColor;
+ConVar g_cvBugReportEmbedColor;
+ConVar g_cvCallAdminEmbedColor;
 ConVar g_cvSteamWebAPIKey;
 ConVar g_cvHostname;
 ConVar g_cvKSFStyle;
@@ -63,14 +65,17 @@ public void OnPluginStart()
 	g_cvAnnounceMention = CreateConVar("sm_surftimer_discord_announce_mention", "@here", "Optional discord mention to ping users when a new record has been set.");
 	g_cvBugReportMention = CreateConVar("sm_surftimer_discord_bug_mention", "@here", "Optional discord mention to notify users when a bug report has been sent.");
 	g_cvCallAdminMention = CreateConVar("sm_surftimer_discord_calladmin_mention", "@here", "Optional discord mention to notify users when a calladmin has been sent.");
-	g_cvMainEmbedColor = CreateConVar("sm_surftimer_discord_main_embed_color", "#00ffff", "Color of embed for when main wr is beaten");
-	g_cvBonusEmbedColor = CreateConVar("sm_surftimer_discord_bonus_embed_color", "#ff0000", "Color of embed for when bonus wr is beaten");
+	g_cvMainEmbedColor = CreateConVar("sm_surftimer_discord_main_embed_color", "#00ffff", "Color of the embed for when main wr is beaten");
+	g_cvBonusEmbedColor = CreateConVar("sm_surftimer_discord_bonus_embed_color", "#ff0000", "Color of the embed for when bonus wr is beaten");
+	g_cvBugReportEmbedColor = CreateConVar("sm_surftimer_discord_bug_embed_color", "#ff0000", "Color of the embed for when a bug report is sent");
+	g_cvCallAdminEmbedColor = CreateConVar("sm_surftimer_discord_admin_embed_color", "#ff0000", "Color of the embed for when an admin is called");
 	g_cvMainUrlRoot = CreateConVar("sm_surftimer_discord_main_url_root", "https://raw.githubusercontent.com/Sayt123/SurfMapPics/master/csgo/", "The base url of where the Discord images are stored. Leave blank to disable.");
 	g_cvBotUsername = CreateConVar("sm_surftimer_discord_username", "SurfTimer BOT", "Username of the bot");
 	g_cvFooterUrl = CreateConVar("sm_surftimer_discord_footer_url", "https://images-ext-1.discordapp.net/external/tfTL-r42Kv1qP4FFY6sQYDT1BBA2fXzDjVmcknAOwNI/https/images-ext-2.discordapp.net/external/3K6ho0iMG_dIVSlaf0hFluQFRGqC2jkO9vWFUlWYOnM/https/images-ext-2.discordapp.net/external/aO9crvExsYt5_mvL72MFLp92zqYJfTnteRqczxg7wWI/https/discordsl.com/assets/img/img.png", "The url of the footer icon, leave blank to disable.");
 	g_cvSteamWebAPIKey = CreateConVar("sm_surftimer_discord_steam_api_key", "", "Allows the use of the player profile picture, leave blank to disable. The key can be obtained here: https://steamcommunity.com/dev/apikey", FCVAR_PROTECTED);
 	g_cvBonusImage = CreateConVar("sm_surftimer_discord_bonus_image", "0", "Do bonuses have a custom image such as surf_ivory_b1.jpg (1) or not (0).", _, true, 0.0, true, 1.0);
 	g_cvKSFStyle = CreateConVar("sm_surftimer_discord_announcement", "0", "Use the KSF style for announcements (1) or the regular style (0)", _, true, 0.0, true, 1.0);
+	
 	g_cvHostname = FindConVar("hostname");
 	g_cvHostname.GetString(g_szHostname, sizeof g_szHostname);
 	g_cvHostname.AddChangeHook(OnConVarChanged);
@@ -232,6 +237,10 @@ public void SendBugReport(int iClient, char[] szText)
 
 	MessageEmbed Embed = new MessageEmbed();
 
+	char szColor[128];
+	GetConVarString(g_cvBugReportEmbedColor, szColor, 128);
+	Embed.SetColor(szColor);
+
 	// Format Title
 	char szTitle[256];
 	Format(szTitle, sizeof szTitle, "__**Bug Type**__ %s - __**Map**__ %s", g_szBugType[iClient], g_szCurrentMap);
@@ -287,6 +296,10 @@ public void SendCallAdmin(int iClient, char[] szText)
 	hook.SetUsername(szCalladminName);
 
 	MessageEmbed Embed = new MessageEmbed();
+
+	char szColor[128];
+	GetConVarString(g_cvCallAdminEmbedColor, szColor, 128);
+	Embed.SetColor(szColor);
 
 	// Format title
 	char szTitle[256];
@@ -390,11 +403,11 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 
 		char szColor[128];
 		GetConVarString(bonusGroup == -1 ? g_cvMainEmbedColor : g_cvBonusEmbedColor, szColor, 128);
+		Embed.SetColor(szColor);
 
 		char szTimeDiscord[128];
 		Format(szTimeDiscord, sizeof(szTimeDiscord), "%s (%s)", szTime, szTimeDif);
 
-		Embed.SetColor(szColor);
 		Embed.SetTitle(szTitle);
 		Embed.AddField("Player", szPlayerID, true);
 		Embed.AddField("Time", szTimeDiscord, true);
