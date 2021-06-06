@@ -109,6 +109,18 @@ public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] n
 	g_cvHostname.GetString(g_szHostname, sizeof g_szHostname);
 }
 
+public void OnClientDisconnect(int iClient)
+{
+	g_szBugType[iClient] = "";
+	g_iWaitingFor[iClient] = None;
+}
+
+public void OnClientConnected(int iClient)
+{
+	g_szBugType[iClient] = "";
+	g_iWaitingFor[iClient] = None;
+}
+
 public Action CommandDiscordTest(int client, int args)
 {
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending main record test message.");
@@ -222,17 +234,16 @@ public void SendBugReport(int iClient, char[] szText)
 
 	// Format Title
 	char szTitle[256];
-	Format(szTitle, sizeof szTitle, "Bug Type: %s ║ Server: %s ║ Map: %s", g_szBugType[iClient], g_szHostname, g_szCurrentMap);
+	Format(szTitle, sizeof szTitle, "__**Bug Type**__ %s - __**Map**__ %s", g_szBugType[iClient], g_szCurrentMap);
 	Embed.SetTitle(szTitle);
 
 	// Format Message
-	char szMessage[512];
 	char szPlayerID[256], szSteamId64[64], szName[MAX_NAME_LENGTH];
 	GetClientName(iClient, szName, sizeof szName);
 	GetClientAuthId(iClient, AuthId_SteamID64, szPlayerID, sizeof szPlayerID);
 	Format(szPlayerID, sizeof szPlayerID, "[%s](https://steamcommunity.com/profiles/%s)", szName, szSteamId64);
-	Format(szMessage, sizeof szMessage, "%s: %s", szPlayerID, szText);
-	Embed.AddField("", szMessage, true);
+	Embed.AddField("Player", szPlayerID, true);
+	Embed.AddField("Description", szText, false);
 
 	// Add Footer
 	char szFooterUrl[1024];
@@ -279,7 +290,7 @@ public void SendCallAdmin(int iClient, char[] szText)
 
 	// Format title
 	char szTitle[256];
-	Format(szTitle, sizeof szTitle, "Server: %s ║ Map: %s", g_szHostname, g_szCurrentMap);
+	Format(szTitle, sizeof szTitle, "__**Admin called on %s", g_szCurrentMap);
 	Embed.SetTitle(szTitle);
 
 	// Format Message
@@ -287,8 +298,8 @@ public void SendCallAdmin(int iClient, char[] szText)
 	GetClientName(iClient, szName, sizeof szName);
 	GetClientAuthId(iClient, AuthId_SteamID64, szPlayerID, sizeof szPlayerID);
 	Format(szPlayerID, sizeof szPlayerID, "[%s](https://steamcommunity.com/profiles/%s)", szName, szSteamId64);
-	Embed.AddField("Reporter", szPlayerID, false);
-	Embed.AddField("", szText, false);
+	Embed.AddField("Player", szPlayerID, false);
+	Embed.AddField("Reason", szText, false);
 
 	// Add Footer
 	char szFooterUrl[1024];
