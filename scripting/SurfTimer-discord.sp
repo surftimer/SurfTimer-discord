@@ -73,7 +73,7 @@ public void OnPluginStart()
 	g_cvBotUsername = CreateConVar("sm_surftimer_discord_username", "SurfTimer BOT", "Username of the bot");
 	g_cvFooterUrl = CreateConVar("sm_surftimer_discord_footer_url", "https://images-ext-1.discordapp.net/external/tfTL-r42Kv1qP4FFY6sQYDT1BBA2fXzDjVmcknAOwNI/https/images-ext-2.discordapp.net/external/3K6ho0iMG_dIVSlaf0hFluQFRGqC2jkO9vWFUlWYOnM/https/images-ext-2.discordapp.net/external/aO9crvExsYt5_mvL72MFLp92zqYJfTnteRqczxg7wWI/https/discordsl.com/assets/img/img.png", "The url of the footer icon, leave blank to disable.");
 	g_cvSteamWebAPIKey = CreateConVar("sm_surftimer_discord_steam_api_key", "", "Allows the use of the player profile picture, leave blank to disable. The key can be obtained here: https://steamcommunity.com/dev/apikey", FCVAR_PROTECTED);
-	g_cvBonusImage = CreateConVar("sm_surftimer_discord_bonus_image", "0", "Do bonuses have a custom image such as surf_ivory_b1.jpg (1) or not (0).", _, true, 0.0, true, 1.0);
+	g_cvBonusImage = CreateConVar("sm_surftimer_discord_bonus_image", "1", "Do bonuses have a custom image such as surf_ivory_b1.jpg (1) or not (0).", _, true, 0.0, true, 1.0);
 	g_cvKSFStyle = CreateConVar("sm_surftimer_discord_announcement", "0", "Use the KSF style for announcements (1) or the regular style (0)", _, true, 0.0, true, 1.0);
 	
 	g_cvHostname = FindConVar("hostname");
@@ -349,7 +349,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 {
 	//Get the WebHook
 	char webhook[1024], webhookName[1024];
-	GetConVarString(bonusGroup == 0 ? g_cvAnnounceMainWebhook : g_cvAnnounceBonusWebhook, webhook, 1024);
+	GetConVarString(bonusGroup == -1 ? g_cvAnnounceMainWebhook : g_cvAnnounceBonusWebhook, webhook, 1024);
 	GetConVarString(g_cvBotUsername, webhookName, 1024);
 	if(StrEqual(webhook, ""))
 	{
@@ -395,7 +395,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		}
 		else
 		{
-			Format(szTitle, sizeof(szTitle), "__**New Bonus #%i World Record**__ | **%s** - **%s**", bonusGroup, g_szCurrentMap, szPlayerStyle);
+			Format(szTitle, sizeof(szTitle), "__**New Bonus #%i World Record**__ | **%s** - **%s**", bonusGroup+1, g_szCurrentMap, szPlayerStyle);
 		}
 
 		//Create the embed message
@@ -418,7 +418,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		if(g_cvBonusImage.BoolValue && bonusGroup != -1)
 		{
 			char szGroup[8];
-			IntToString(bonusGroup, szGroup, sizeof szGroup);
+			IntToString(bonusGroup+1, szGroup, sizeof szGroup);
 			StrCat(szUrlMain, sizeof(szUrlMain), "_b");
 			StrCat(szUrlMain, sizeof(szUrlMain), szGroup);
 		}
