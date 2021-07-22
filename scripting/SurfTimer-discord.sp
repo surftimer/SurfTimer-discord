@@ -249,7 +249,7 @@ public void SendBugReport(int iClient, char[] szText)
 	// Format Message
 	char szPlayerID[256], szSteamId64[64], szName[MAX_NAME_LENGTH];
 	GetClientName(iClient, szName, sizeof szName);
-	GetClientAuthId(iClient, AuthId_SteamID64, szPlayerID, sizeof szPlayerID);
+	GetClientAuthId(iClient, AuthId_SteamID64, szSteamId64, sizeof szSteamId64);
 	Format(szPlayerID, sizeof szPlayerID, "[%s](https://steamcommunity.com/profiles/%s)", szName, szSteamId64);
 	Embed.AddField("Player", szPlayerID, true);
 	Embed.AddField("Description", szText, false);
