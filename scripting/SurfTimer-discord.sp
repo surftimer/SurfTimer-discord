@@ -395,7 +395,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		}
 		else
 		{
-			Format(szTitle, sizeof(szTitle), "__**New Bonus #%i World Record**__ | **%s** - **%s**", bonusGroup+1, g_szCurrentMap, szPlayerStyle);
+			Format(szTitle, sizeof(szTitle), "__**New Bonus #%i World Record**__ | **%s** - **%s**", bonusGroup, g_szCurrentMap, szPlayerStyle);
 		}
 
 		//Create the embed message
@@ -418,7 +418,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		if(g_cvBonusImage.BoolValue && bonusGroup != -1)
 		{
 			char szGroup[8];
-			IntToString(bonusGroup+1, szGroup, sizeof szGroup);
+			IntToString(bonusGroup, szGroup, sizeof szGroup);
 			StrCat(szUrlMain, sizeof(szUrlMain), "_b");
 			StrCat(szUrlMain, sizeof(szUrlMain), szGroup);
 		}
