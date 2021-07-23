@@ -249,7 +249,7 @@ public void SendBugReport(int iClient, char[] szText)
 	// Format Message
 	char szPlayerID[256], szSteamId64[64], szName[MAX_NAME_LENGTH];
 	GetClientName(iClient, szName, sizeof szName);
-	GetClientAuthId(iClient, AuthId_SteamID64, szPlayerID, sizeof szPlayerID);
+	GetClientAuthId(iClient, AuthId_SteamID64, szSteamId64, sizeof szSteamId64);
 	Format(szPlayerID, sizeof szPlayerID, "[%s](https://steamcommunity.com/profiles/%s)", szName, szSteamId64);
 	Embed.AddField("Player", szPlayerID, true);
 	Embed.AddField("Description", szText, false);
@@ -309,7 +309,7 @@ public void SendCallAdmin(int iClient, char[] szText)
 	// Format Message
 	char szPlayerID[256], szSteamId64[64], szName[MAX_NAME_LENGTH];
 	GetClientName(iClient, szName, sizeof szName);
-	GetClientAuthId(iClient, AuthId_SteamID64, szPlayerID, sizeof szPlayerID);
+	GetClientAuthId(iClient, AuthId_SteamID64, szSteamId64, sizeof szSteamId64);
 	Format(szPlayerID, sizeof szPlayerID, "[%s](https://steamcommunity.com/profiles/%s)", szName, szSteamId64);
 	Embed.AddField("Player", szPlayerID, false);
 	Embed.AddField("Reason", szText, false);
@@ -359,7 +359,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 
 	char szPlayerID[256], szSteamId64[64], szName[MAX_NAME_LENGTH];
 	GetClientName(client, szName, sizeof szName);
-	GetClientAuthId(client, AuthId_SteamID64, szPlayerID, sizeof szPlayerID);
+	GetClientAuthId(client, AuthId_SteamID64, szSteamId64, sizeof szPlayerID);
 	Format(szPlayerID, sizeof szPlayerID, "[%s](https://steamcommunity.com/profiles/%s)", szName, szSteamId64);
 
 	//Test which style to use
@@ -395,7 +395,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		}
 		else
 		{
-			Format(szTitle, sizeof(szTitle), "__**New Bonus #%i World Record**__ | **%s** - **%s**", bonusGroup+1, g_szCurrentMap, szPlayerStyle);
+			Format(szTitle, sizeof(szTitle), "__**New Bonus #%i World Record**__ | **%s** - **%s**", bonusGroup, g_szCurrentMap, szPlayerStyle);
 		}
 
 		//Create the embed message
@@ -418,7 +418,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		if(g_cvBonusImage.BoolValue && bonusGroup != -1)
 		{
 			char szGroup[8];
-			IntToString(bonusGroup+1, szGroup, sizeof szGroup);
+			IntToString(bonusGroup, szGroup, sizeof szGroup);
 			StrCat(szUrlMain, sizeof(szUrlMain), "_b");
 			StrCat(szUrlMain, sizeof(szUrlMain), szGroup);
 		}
