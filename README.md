@@ -15,6 +15,7 @@ The messages will look like this:
 - [SurfTimer-Official (Sad's Fork)](https://github.com/qawery-just-sad/Surftimer-Official)
 - [SMJansson](https://forums.alliedmods.net/showthread.php?t=184604)
 - [SteamWorks](https://forums.alliedmods.net/showthread.php?t=229556)
+- [Discord_api](https://github.com/Deathknife/sourcemod-discord) which is included in the plugins folder.
 
 ## Installation
 
