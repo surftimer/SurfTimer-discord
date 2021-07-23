@@ -12,11 +12,11 @@
 
 public Plugin myinfo =
 {
-	name = "SurfTimer-Discord",
+	name = "SurfTimer-Discord (Fork version)",
 	author = "Sarrus",
 	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
-	version = "1.0",
-	url = "https://github.com/Sarrus1/SurfTimer-discord"
+	version = "1.0.1",
+	url = "https://github.com/ilyasafr/SurfTimer-discord"
 };
 
 
@@ -75,7 +75,7 @@ public void OnPluginStart()
 	g_cvSteamWebAPIKey = CreateConVar("sm_surftimer_discord_steam_api_key", "", "Allows the use of the player profile picture, leave blank to disable. The key can be obtained here: https://steamcommunity.com/dev/apikey", FCVAR_PROTECTED);
 	g_cvBonusImage = CreateConVar("sm_surftimer_discord_bonus_image", "1", "Do bonuses have a custom image such as surf_ivory_b1.jpg (1) or not (0).", _, true, 0.0, true, 1.0);
 	g_cvKSFStyle = CreateConVar("sm_surftimer_discord_announcement", "0", "Use the KSF style for announcements (1) or the regular style (0)", _, true, 0.0, true, 1.0);
-	
+
 	g_cvHostname = FindConVar("hostname");
 	g_cvHostname.GetString(g_szHostname, sizeof g_szHostname);
 	g_cvHostname.AddChangeHook(OnConVarChanged);
