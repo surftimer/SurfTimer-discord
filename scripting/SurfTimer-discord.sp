@@ -453,7 +453,14 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		// Format The Message
 		char szMessage[256];
 
-		Format(szMessage, sizeof(szMessage), "```md\n# New Server Record on %s #\n\n[%s] beat the server record on < %s > with a time of < %s (%s) > ]:```", g_szHostname, szName, g_szCurrentMap, szTime, szTimeDif);
+		if(bonusGroup == -1 )
+		{
+			Format(szMessage, sizeof(szMessage), "```md\n# New Server Record on %s #\n\n[%s] beat the server record on < %s > with a time of < %s (%s) > ]:```", g_szHostname, szName, g_szCurrentMap, szTime, szTimeDif);
+		}
+		else
+		{
+			Format(szMessage, sizeof(szMessage), "```md\n# New Bonus #%i Record on %s #\n\n[%s] beat the bonus #%i record on < %s > with a time of < %s (%s) > ]:```", bonusGroup, g_szHostname, szName, bonusGroup, g_szCurrentMap, szTime, szTimeDif);
+		}
 
 		hook.SetContent(szMessage);
 		hook.Send();
