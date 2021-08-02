@@ -38,14 +38,18 @@ ConVar g_cvSteamWebAPIKey;
 ConVar g_cvHostname;
 ConVar g_cvKSFStyle;
 ConVar g_cvBonusImage;
+ConVar g_cvProfileUrlType;
+ConVar g_cvWebStatsUrl;
 
 char g_szHostname[256];
 char g_szApiKey[256];
 char g_szCurrentMap[256];
 char g_szPictureURL[512];
 char g_szBugType[MAXPLAYERS + 1][32];
+char g_szProfileUrl[256];
 
 bool g_bIsSurfTimerEnabled = false;
+bool g_bRedirectToSteam;
 
 enum WaitingFor
 {
@@ -75,7 +79,9 @@ public void OnPluginStart()
 	g_cvSteamWebAPIKey = CreateConVar("sm_surftimer_discord_steam_api_key", "", "Allows the use of the player profile picture, leave blank to disable. The key can be obtained here: https://steamcommunity.com/dev/apikey", FCVAR_PROTECTED);
 	g_cvBonusImage = CreateConVar("sm_surftimer_discord_bonus_image", "1", "Do bonuses have a custom image such as surf_ivory_b1.jpg (1) or not (0).", _, true, 0.0, true, 1.0);
 	g_cvKSFStyle = CreateConVar("sm_surftimer_discord_announcement", "0", "Use the KSF style for announcements (1) or the regular style (0)", _, true, 0.0, true, 1.0);
-	
+	g_cvProfileUrlType = CreateConVar("sm_surftimer_discord_profile_url_type", "0", "Profile URL redirect to Steam (0) or to your Webstats (1)", _, true, 0.0, true, 1.0);
+	g_cvWebStatsUrl = CreateConVar("sm_surftimer_discord_webstats_url", "", "Your webstats URL eg. \"https://www.mywebstats.com\" (only specify if using \"sm_surftimer_discord_profile_url_type 1\")");
+
 	g_cvHostname = FindConVar("hostname");
 	g_cvHostname.GetString(g_szHostname, sizeof g_szHostname);
 	g_cvHostname.AddChangeHook(OnConVarChanged);
@@ -88,6 +94,13 @@ public void OnPluginStart()
 	AddCommandListener(SayHook, "say_team");
 
 	GetConVarString(g_cvSteamWebAPIKey, g_szApiKey, sizeof g_szApiKey);
+
+	g_bRedirectToSteam = GetConVarBool(g_cvProfileUrlType);
+
+	if(g_bRedirectToSteam)
+		GetConVarString(g_cvWebStatsUrl, g_szProfileUrl, sizeof g_szProfileUrl);
+	else
+		Format(g_szProfileUrl, sizeof g_szProfileUrl, "https://steamcommunity.com/profiles");
 
 	AutoExecConfig(true, "SurfTimer-Discord");
 
@@ -247,10 +260,16 @@ public void SendBugReport(int iClient, char[] szText)
 	Embed.SetTitle(szTitle);
 
 	// Format Message
-	char szPlayerID[256], szSteamId64[64], szName[MAX_NAME_LENGTH];
+	char szPlayerID[256], szSteamId[64], szName[MAX_NAME_LENGTH];
 	GetClientName(iClient, szName, sizeof szName);
-	GetClientAuthId(iClient, AuthId_SteamID64, szSteamId64, sizeof szSteamId64);
-	Format(szPlayerID, sizeof szPlayerID, "[%s](https://steamcommunity.com/profiles/%s)", szName, szSteamId64);
+
+	if(g_bRedirectToSteam)
+		GetClientAuthId(iClient, AuthId_SteamID64, szSteamId, sizeof szSteamId);
+	else
+		GetClientAuthId(iClient, AuthId_Steam2, szSteamId, sizeof szSteamId);
+
+	Format(szPlayerID, sizeof szPlayerID, "[%s](%s/%s)", szName, g_szProfileUrl, szSteamId);
+
 	Embed.AddField("Player", szPlayerID, true);
 	Embed.AddField("Description", szText, false);
 
@@ -307,10 +326,16 @@ public void SendCallAdmin(int iClient, char[] szText)
 	Embed.SetTitle(szTitle);
 
 	// Format Message
-	char szPlayerID[256], szSteamId64[64], szName[MAX_NAME_LENGTH];
+	char szPlayerID[256], szSteamId[64], szName[MAX_NAME_LENGTH];
 	GetClientName(iClient, szName, sizeof szName);
-	GetClientAuthId(iClient, AuthId_SteamID64, szSteamId64, sizeof szSteamId64);
-	Format(szPlayerID, sizeof szPlayerID, "[%s](https://steamcommunity.com/profiles/%s)", szName, szSteamId64);
+	
+	if(g_bRedirectToSteam)
+		GetClientAuthId(iClient, AuthId_SteamID64, szSteamId, sizeof szSteamId);
+	else
+		GetClientAuthId(iClient, AuthId_Steam2, szSteamId, sizeof szSteamId);
+
+	Format(szPlayerID, sizeof szPlayerID, "[%s](%s/%s)", szName, g_szProfileUrl, szSteamId);
+
 	Embed.AddField("Player", szPlayerID, false);
 	Embed.AddField("Reason", szText, false);
 
@@ -357,10 +382,15 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		return;
 	}
 
-	char szPlayerID[256], szSteamId64[64], szName[MAX_NAME_LENGTH];
+	char szPlayerID[256], szSteamId[64], szName[MAX_NAME_LENGTH];
 	GetClientName(client, szName, sizeof szName);
-	GetClientAuthId(client, AuthId_SteamID64, szSteamId64, sizeof szPlayerID);
-	Format(szPlayerID, sizeof szPlayerID, "[%s](https://steamcommunity.com/profiles/%s)", szName, szSteamId64);
+
+	if(g_bRedirectToSteam)
+		GetClientAuthId(client, AuthId_SteamID64, szSteamId, sizeof szSteamId);
+	else
+		GetClientAuthId(client, AuthId_Steam2, szSteamId, sizeof szSteamId);
+
+	Format(szPlayerID, sizeof szPlayerID, "[%s](%s/%s)", szName, g_szProfileUrl, szSteamId);
 
 	//Test which style to use
 	if(!g_cvKSFStyle.BoolValue)
