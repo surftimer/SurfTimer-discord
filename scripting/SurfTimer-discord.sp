@@ -49,7 +49,7 @@ char g_szBugType[MAXPLAYERS + 1][32];
 char g_szProfileUrl[256];
 
 bool g_bIsSurfTimerEnabled = false;
-bool g_bRedirectToSteam;
+bool g_bRedirectToWebstats;
 
 enum WaitingFor
 {
@@ -95,9 +95,9 @@ public void OnPluginStart()
 
 	GetConVarString(g_cvSteamWebAPIKey, g_szApiKey, sizeof g_szApiKey);
 
-	g_bRedirectToSteam = GetConVarBool(g_cvProfileUrlType);
+	g_bRedirectToWebstats = GetConVarBool(g_cvProfileUrlType);
 
-	if(g_bRedirectToSteam)
+	if(g_bRedirectToWebstats)
 		GetConVarString(g_cvWebStatsUrl, g_szProfileUrl, sizeof g_szProfileUrl);
 	else
 		Format(g_szProfileUrl, sizeof g_szProfileUrl, "https://steamcommunity.com/profiles");
@@ -263,7 +263,7 @@ public void SendBugReport(int iClient, char[] szText)
 	char szPlayerID[256], szSteamId[64], szName[MAX_NAME_LENGTH];
 	GetClientName(iClient, szName, sizeof szName);
 
-	if(g_bRedirectToSteam)
+	if(g_bRedirectToWebstats)
 		GetClientAuthId(iClient, AuthId_SteamID64, szSteamId, sizeof szSteamId);
 	else
 		GetClientAuthId(iClient, AuthId_Steam2, szSteamId, sizeof szSteamId);
@@ -329,7 +329,7 @@ public void SendCallAdmin(int iClient, char[] szText)
 	char szPlayerID[256], szSteamId[64], szName[MAX_NAME_LENGTH];
 	GetClientName(iClient, szName, sizeof szName);
 	
-	if(g_bRedirectToSteam)
+	if(g_bRedirectToWebstats)
 		GetClientAuthId(iClient, AuthId_SteamID64, szSteamId, sizeof szSteamId);
 	else
 		GetClientAuthId(iClient, AuthId_Steam2, szSteamId, sizeof szSteamId);
@@ -385,7 +385,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 	char szPlayerID[256], szSteamId[64], szName[MAX_NAME_LENGTH];
 	GetClientName(client, szName, sizeof szName);
 
-	if(g_bRedirectToSteam)
+	if(g_bRedirectToWebstats)
 		GetClientAuthId(client, AuthId_SteamID64, szSteamId, sizeof szSteamId);
 	else
 		GetClientAuthId(client, AuthId_Steam2, szSteamId, sizeof szSteamId);
