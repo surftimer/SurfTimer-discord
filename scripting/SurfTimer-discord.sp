@@ -264,9 +264,9 @@ public void SendBugReport(int iClient, char[] szText)
 	GetClientName(iClient, szName, sizeof szName);
 
 	if(g_bRedirectToWebstats)
-		GetClientAuthId(iClient, AuthId_SteamID64, szSteamId, sizeof szSteamId);
-	else
 		GetClientAuthId(iClient, AuthId_Steam2, szSteamId, sizeof szSteamId);
+	else
+		GetClientAuthId(iClient, AuthId_SteamID64, szSteamId, sizeof szSteamId);
 
 	Format(szPlayerID, sizeof szPlayerID, "[%s](%s/%s)", szName, g_szProfileUrl, szSteamId);
 
@@ -330,9 +330,9 @@ public void SendCallAdmin(int iClient, char[] szText)
 	GetClientName(iClient, szName, sizeof szName);
 	
 	if(g_bRedirectToWebstats)
-		GetClientAuthId(iClient, AuthId_SteamID64, szSteamId, sizeof szSteamId);
-	else
 		GetClientAuthId(iClient, AuthId_Steam2, szSteamId, sizeof szSteamId);
+	else
+		GetClientAuthId(iClient, AuthId_SteamID64, szSteamId, sizeof szSteamId);
 
 	Format(szPlayerID, sizeof szPlayerID, "[%s](%s/%s)", szName, g_szProfileUrl, szSteamId);
 
@@ -386,9 +386,9 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 	GetClientName(client, szName, sizeof szName);
 
 	if(g_bRedirectToWebstats)
-		GetClientAuthId(client, AuthId_SteamID64, szSteamId, sizeof szSteamId);
-	else
 		GetClientAuthId(client, AuthId_Steam2, szSteamId, sizeof szSteamId);
+	else
+		GetClientAuthId(client, AuthId_SteamID64, szSteamId, sizeof szSteamId);
 
 	Format(szPlayerID, sizeof szPlayerID, "[%s](%s/%s)", szName, g_szProfileUrl, szSteamId);
 
