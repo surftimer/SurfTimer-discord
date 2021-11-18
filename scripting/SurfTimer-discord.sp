@@ -322,7 +322,7 @@ public void SendCallAdmin(int iClient, char[] szText)
 
 	// Format title
 	char szTitle[256];
-	Format(szTitle, sizeof szTitle, "__**Admin called on %s", g_szCurrentMap);
+	Format(szTitle, sizeof szTitle, "__**Admin called__ on %s**", g_szCurrentMap);
 	embed.SetTitle(szTitle);
 
 	// Format Message
