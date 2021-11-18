@@ -26,7 +26,8 @@ jobs:
 
       - name: Compile plugins
         run: |
-          for file in ./scripting/SurfTimer-discord.sp
+          cd scripting
+          for file in ./SurfTimer-discord.sp
           do
             echo -e "\nCompiling $file..."
             spcomp -E -w234 -O2 -v2 -i include $file
