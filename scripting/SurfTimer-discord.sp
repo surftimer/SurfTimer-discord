@@ -286,11 +286,8 @@ public void SendBugReport(int iClient, char[] szText)
 	}
 
 	hook.AddEmbed(embed);
-	hook.Execute(webhook, OnWebHookExecuted);
+	hook.Execute(webhook, OnWebHookExecuted, iClient);
 	delete hook;
-	delete field;
-	delete footer;
-	delete embed;
 
 	CPrintToChat(iClient, "{blue}[SurfTimer-Discord] %t", "BugReport Sent");
 }
@@ -331,7 +328,7 @@ public void SendCallAdmin(int iClient, char[] szText)
 	// Format Message
 	char szPlayerID[256], szSteamId[64], szName[MAX_NAME_LENGTH];
 	GetClientName(iClient, szName, sizeof szName);
-	
+
 	if(g_bRedirectToSteam)
 		GetClientAuthId(iClient, AuthId_SteamID64, szSteamId, sizeof szSteamId);
 	else
@@ -359,11 +356,8 @@ public void SendCallAdmin(int iClient, char[] szText)
 	}
 
 	hook.AddEmbed(embed);
-	hook.Execute(webhook, OnWebHookExecuted);
+	hook.Execute(webhook, OnWebHookExecuted, iClient);
 	delete hook;
-	delete field;
-	delete footer;
-	delete embed;
 
 	CPrintToChat(iClient, "{blue}[SurfTimer-Discord] %t", "CallAdmin Sent");
 }
@@ -377,7 +371,7 @@ public void OnMapStart()
 
 public void surftimer_OnNewRecord(int client, int style, char[] time, char[] timeDif, int bonusGroup)
 {
-	if(!StrEqual(g_szApiKey, ""))
+	if(strncmp(g_szApiKey, "", 1) != 0)
 		GetProfilePictureURL(client, style, time, timeDif, bonusGroup);
 	else
 		sendDiscordAnnouncement(client, style, time, timeDif, bonusGroup);
@@ -408,7 +402,6 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 	//Test which style to use
 	if(!g_cvKSFStyle.BoolValue)
 	{
-		
 		char szMention[128];
 		GetConVarString(g_cvAnnounceMention, szMention, 128);
 		Webhook hook = new Webhook(szMention);
@@ -466,8 +459,13 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		StrCat(szUrlMain, sizeof szUrlMain, ".jpg");
 		EmbedImage image = new EmbedImage(szUrlMain);
 		embed.SetImage(image);
-		EmbedThumbnail thumb = new EmbedThumbnail(g_szPictureURL);
-		embed.SetThumbnail(thumb);
+
+		if(strncmp(g_szPictureURL, "", 1) != 0)
+		{
+			EmbedThumbnail thumb = new EmbedThumbnail(g_szPictureURL);
+			embed.SetThumbnail(thumb);
+		}
+
 
 		// Add Footer
 		EmbedFooter footer = new EmbedFooter();
@@ -484,13 +482,8 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		}
 
 		hook.AddEmbed(embed);
-		hook.Execute(webhook, OnWebHookExecuted);
+		hook.Execute(webhook, OnWebHookExecuted, client);
 		delete hook;
-		delete field;
-		delete footer;
-		delete embed;
-		delete thumb;
-		delete image;
 	}
 	else
 	{
@@ -512,7 +505,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		}
 
 		hook.SetContent(szMessage);
-		hook.Execute(webhook, OnWebHookExecuted);
+		hook.Execute(webhook, OnWebHookExecuted, client);
 		delete hook;
 	}
 }
@@ -528,7 +521,7 @@ stock void GetProfilePictureURL(int client, int style, char[] time, char[] timeD
 	pack.Reset();
 
 	char szRequestBuffer[1024], szSteamID[64];
-	
+
 	GetClientAuthId(client, AuthId_SteamID64, szSteamID, sizeof szSteamID, true);
 
 	GetConVarString(g_cvSteamWebAPIKey, g_szApiKey, sizeof g_szApiKey);
@@ -550,14 +543,14 @@ stock void OnResponseReceived(HTTPResponse response, DataPack pack)
 	ReadPackString(pack, szTimeDif, sizeof szTimeDif);
 	int bonusGroup = pack.ReadCell();
 
-	if (response.Status != HTTPStatus_OK) 
+	if (response.Status != HTTPStatus_OK)
 		return;
-	
+
 	JSONObject objects = view_as<JSONObject>(response.Data);
 	JSONObject Response = view_as<JSONObject>(objects.Get("response"));
 	JSONArray players = view_as<JSONArray>(Response.Get("players"));
 	int playerlen = players.Length;
-	
+
 	JSONObject player;
 	for (int i = 0; i < playerlen; i++)
 	{
@@ -569,7 +562,6 @@ stock void OnResponseReceived(HTTPResponse response, DataPack pack)
 	delete Response;
 	delete players;
 	delete player;
-	delete connection;
 	sendDiscordAnnouncement(client, style, szTime, szTimeDif, bonusGroup);
 }
 
@@ -601,11 +593,9 @@ stock bool IsValidClient(int iClient, bool bNoBots = true)
 	return IsClientInGame(iClient);
 }
 
-public void OnWebHookExecuted(HTTPResponse response, DataPack pack)
+public void OnWebHookExecuted(HTTPResponse response, int client)
 {
-	int client = pack.ReadCell();
-
-	PrintToServer("Processed client n°%s's webhook, status %d", client, response.Status);
+	PrintToServer("Processed client n°%d's webhook, status %d", client, response.Status);
 	if (response.Status != HTTPStatus_NoContent)
 	{
 		PrintToServer("An error has occured while sending the webhook.");
