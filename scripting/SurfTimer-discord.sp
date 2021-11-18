@@ -1,11 +1,8 @@
 #include <colorvariables>
-#include <discord>
-#include <sdkhooks>
-#include <sdktools>
-#include <smjansson>
+#include <ripext>
 #include <sourcemod>
-#include <steamworks>
 #include <surftimer>
+#include <discordWebhookAPI>
 #pragma newdecls required
 #pragma semicolon 1
 
@@ -15,10 +12,12 @@ public Plugin myinfo =
 	name = "SurfTimer-Discord",
 	author = "Sarrus",
 	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
-	version = "1.0",
+	version = "2.0.0",
 	url = "https://github.com/Sarrus1/SurfTimer-discord"
 };
 
+
+HTTPRequest connection;
 
 ConVar g_cvAnnounceMainWebhook;
 ConVar g_cvAnnounceBonusWebhook;
@@ -73,7 +72,7 @@ public void OnPluginStart()
 	g_cvBonusEmbedColor = CreateConVar("sm_surftimer_discord_bonus_embed_color", "#ff0000", "Color of the embed for when bonus wr is beaten");
 	g_cvBugReportEmbedColor = CreateConVar("sm_surftimer_discord_bug_embed_color", "#ff0000", "Color of the embed for when a bug report is sent");
 	g_cvCallAdminEmbedColor = CreateConVar("sm_surftimer_discord_admin_embed_color", "#ff0000", "Color of the embed for when an admin is called");
-	g_cvMainUrlRoot = CreateConVar("sm_surftimer_discord_main_url_root", "https://raw.githubusercontent.com/Sayt123/SurfMapPics/master/csgo/", "The base url of where the Discord images are stored. Leave blank to disable.");
+	g_cvMainUrlRoot = CreateConVar("sm_surftimer_discord_main_url_root", "https://raw.githubusercontent.com/Sayt123/SurfMapPics/Maps-and-bonuses/csgo/", "The base url of where the Discord images are stored. Leave blank to disable.");
 	g_cvBotUsername = CreateConVar("sm_surftimer_discord_username", "SurfTimer BOT", "Username of the bot");
 	g_cvFooterUrl = CreateConVar("sm_surftimer_discord_footer_url", "https://images-ext-1.discordapp.net/external/tfTL-r42Kv1qP4FFY6sQYDT1BBA2fXzDjVmcknAOwNI/https/images-ext-2.discordapp.net/external/3K6ho0iMG_dIVSlaf0hFluQFRGqC2jkO9vWFUlWYOnM/https/images-ext-2.discordapp.net/external/aO9crvExsYt5_mvL72MFLp92zqYJfTnteRqczxg7wWI/https/discordsl.com/assets/img/img.png", "The url of the footer icon, leave blank to disable.");
 	g_cvSteamWebAPIKey = CreateConVar("sm_surftimer_discord_steam_api_key", "", "Allows the use of the player profile picture, leave blank to disable. The key can be obtained here: https://steamcommunity.com/dev/apikey", FCVAR_PROTECTED);
@@ -233,8 +232,7 @@ public void SendBugReport(int iClient, char[] szText)
 		return;
 
 	// Send Discord Announcement
-	DiscordWebHook hook = new DiscordWebHook(webhook);
-	hook.SlackMode = true;
+	Webhook hook = new Webhook();
 
 	char szMention[128];
 	GetConVarString(g_cvBugReportMention, szMention, sizeof szMention);
@@ -248,16 +246,14 @@ public void SendBugReport(int iClient, char[] szText)
 
 	hook.SetUsername(szBugTrackerName);
 
-	MessageEmbed Embed = new MessageEmbed();
+	Embed embed = new Embed();
 
-	char szColor[128];
-	GetConVarString(g_cvBugReportEmbedColor, szColor, 128);
-	Embed.SetColor(szColor);
+	embed.SetColor(g_cvBugReportEmbedColor.IntValue);
 
 	// Format Title
 	char szTitle[256];
 	Format(szTitle, sizeof szTitle, "__**Bug Type**__ %s - __**Map**__ %s", g_szBugType[iClient], g_szCurrentMap);
-	Embed.SetTitle(szTitle);
+	embed.SetTitle(szTitle);
 
 	// Format Message
 	char szPlayerID[256], szSteamId[64], szName[MAX_NAME_LENGTH];
@@ -270,20 +266,27 @@ public void SendBugReport(int iClient, char[] szText)
 
 	Format(szPlayerID, sizeof szPlayerID, "[%s](%s/%s)", szName, g_szProfileUrl, szSteamId);
 
-	Embed.AddField("Player", szPlayerID, true);
-	Embed.AddField("Description", szText, false);
+	EmbedField field = new EmbedField("Player", szPlayerID, true);
+	embed.AddField(field);
+	field = new EmbedField("Description", szText, false);
+	embed.AddField(field);
 
 	// Add Footer
+	EmbedFooter footer = new EmbedFooter();
+	char buffer[1000];
+	Format(buffer, sizeof buffer, "Server: %s", g_szHostname);
+	footer.SetText(buffer);
+
 	char szFooterUrl[1024];
 	GetConVarString(g_cvFooterUrl, szFooterUrl, sizeof szFooterUrl);
 	if(!StrEqual(szFooterUrl, ""))
-		Embed.SetFooterIcon(szFooterUrl);
-	char buffer[1000];
-	Format(buffer, sizeof buffer, "Server: %s", g_szHostname);
-	Embed.SetFooter(buffer);
+	{
+		footer.SetIconURL(szFooterUrl);
+		embed.SetFooter(footer);
+	}
 
-	hook.Embed(Embed);
-	hook.Send();
+	hook.AddEmbed(embed);
+	hook.Execute(webhook, OnWebHookExecuted, iClient);
 	delete hook;
 
 	CPrintToChat(iClient, "{blue}[SurfTimer-Discord] %t", "BugReport Sent");
@@ -300,8 +303,7 @@ public void SendCallAdmin(int iClient, char[] szText)
 	}
 
 	// Send Discord Announcement
-	DiscordWebHook hook = new DiscordWebHook(webhook);
-	hook.SlackMode = true;
+	Webhook hook = new Webhook();
 
 	char szMention[128];
 	GetConVarString(g_cvCallAdminMention, szMention, sizeof szMention);
@@ -314,21 +316,18 @@ public void SendCallAdmin(int iClient, char[] szText)
 
 	hook.SetUsername(szCalladminName);
 
-	MessageEmbed Embed = new MessageEmbed();
+	Embed embed = new Embed();
 
-	char szColor[128];
-	GetConVarString(g_cvCallAdminEmbedColor, szColor, 128);
-	Embed.SetColor(szColor);
+	embed.SetColor(g_cvCallAdminEmbedColor.IntValue);
 
 	// Format title
 	char szTitle[256];
 	Format(szTitle, sizeof szTitle, "__**Admin called on %s", g_szCurrentMap);
-	Embed.SetTitle(szTitle);
+	embed.SetTitle(szTitle);
 
 	// Format Message
 	char szPlayerID[256], szSteamId[64], szName[MAX_NAME_LENGTH];
 	GetClientName(iClient, szName, sizeof szName);
-	
 	if(g_bRedirectToWebstats)
 		GetClientAuthId(iClient, AuthId_Steam2, szSteamId, sizeof szSteamId);
 	else
@@ -336,20 +335,27 @@ public void SendCallAdmin(int iClient, char[] szText)
 
 	Format(szPlayerID, sizeof szPlayerID, "[%s](%s/%s)", szName, g_szProfileUrl, szSteamId);
 
-	Embed.AddField("Player", szPlayerID, false);
-	Embed.AddField("Reason", szText, false);
+	EmbedField field = new EmbedField("Player", szPlayerID, false);
+	embed.AddField(field);
+	field = new EmbedField("Reason", szText, false);
+	embed.AddField(field);
 
 	// Add Footer
+	EmbedFooter footer = new EmbedFooter();
+	char buffer[1000];
+	Format(buffer, sizeof buffer, "Server: %s", g_szHostname);
+	footer.SetText(buffer);
+
 	char szFooterUrl[1024];
 	GetConVarString(g_cvFooterUrl, szFooterUrl, sizeof szFooterUrl);
 	if(!StrEqual(szFooterUrl, ""))
-		Embed.SetFooterIcon(szFooterUrl);
-	char buffer[1000];
-	Format(buffer, sizeof buffer, "Server: %s", g_szHostname);
-	Embed.SetFooter(buffer);
+	{
+		footer.SetIconURL(szFooterUrl);
+		embed.SetFooter(footer);
+	}
 
-	hook.Embed(Embed);
-	hook.Send();
+	hook.AddEmbed(embed);
+	hook.Execute(webhook, OnWebHookExecuted, iClient);
 	delete hook;
 
 	CPrintToChat(iClient, "{blue}[SurfTimer-Discord] %t", "CallAdmin Sent");
@@ -364,7 +370,7 @@ public void OnMapStart()
 
 public void surftimer_OnNewRecord(int client, int style, char[] time, char[] timeDif, int bonusGroup)
 {
-	if(!StrEqual(g_szApiKey, ""))
+	if(strncmp(g_szApiKey, "", 1) != 0)
 		GetProfilePictureURL(client, style, time, timeDif, bonusGroup);
 	else
 		sendDiscordAnnouncement(client, style, time, timeDif, bonusGroup);
@@ -395,27 +401,23 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 	//Test which style to use
 	if(!g_cvKSFStyle.BoolValue)
 	{
-		DiscordWebHook hook = new DiscordWebHook(webhook);
 		char szMention[128];
-		hook.SlackMode = true;
 		GetConVarString(g_cvAnnounceMention, szMention, 128);
-		if(!StrEqual(szMention, ""))
-		{
-			hook.SetContent(szMention);
-		}
+		Webhook hook = new Webhook(szMention);
+
 		hook.SetUsername(webhookName);
 
 		char szPlayerStyle[128];
 		switch(style)
 		{
-		case 0: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Normal");
-		case 1: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Sideways");
-		case 2: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Half Sideways");
-		case 3: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Backwards");
-		case 4: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Low Gravity");
-		case 5: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Slow Motion");
-		case 6: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Fast Forward");
-		case 7: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Free Style");
+			case 0: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Normal");
+			case 1: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Sideways");
+			case 2: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Half Sideways");
+			case 3: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Backwards");
+			case 4: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Low Gravity");
+			case 5: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Slow Motion");
+			case 6: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Fast Forward");
+			case 7: strcopy(szPlayerStyle, sizeof szPlayerStyle, "Free Style");
 		}
 
 		char szTitle[256];
@@ -429,18 +431,18 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		}
 
 		//Create the embed message
-		MessageEmbed Embed = new MessageEmbed();
+		Embed embed = new Embed();
 
-		char szColor[128];
-		GetConVarString(bonusGroup == -1 ? g_cvMainEmbedColor : g_cvBonusEmbedColor, szColor, 128);
-		Embed.SetColor(szColor);
+		embed.SetColor(bonusGroup == -1 ? g_cvMainEmbedColor.IntValue : g_cvBonusEmbedColor.IntValue);
 
 		char szTimeDiscord[128];
 		Format(szTimeDiscord, sizeof(szTimeDiscord), "%s (%s)", szTime, szTimeDif);
 
-		Embed.SetTitle(szTitle);
-		Embed.AddField("Player", szPlayerID, true);
-		Embed.AddField("Time", szTimeDiscord, true);
+		embed.SetTitle(szTitle);
+		EmbedField field = new EmbedField("Player", szPlayerID, true);
+		embed.AddField(field);
+		field = new EmbedField("Time", szTimeDiscord, true);
+		embed.AddField(field);
 
 		char szUrlMain[1024];
 		GetConVarString(g_cvMainUrlRoot, szUrlMain, 1024);
@@ -454,29 +456,38 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		}
 
 		StrCat(szUrlMain, sizeof szUrlMain, ".jpg");
-		Embed.SetImage(szUrlMain);
-		if(!StrEqual(g_szPictureURL, ""))
-			Embed.SetThumb(g_szPictureURL);
+		EmbedImage image = new EmbedImage(szUrlMain);
+		embed.SetImage(image);
+
+		if(strncmp(g_szPictureURL, "", 1) != 0)
+		{
+			EmbedThumbnail thumb = new EmbedThumbnail(g_szPictureURL);
+			embed.SetThumbnail(thumb);
+		}
+
+
+		// Add Footer
+		EmbedFooter footer = new EmbedFooter();
+		char buffer[1000];
+		Format(buffer, sizeof buffer, "Server: %s", g_szHostname);
+		footer.SetText(buffer);
 
 		char szFooterUrl[1024];
 		GetConVarString(g_cvFooterUrl, szFooterUrl, sizeof szFooterUrl);
 		if(!StrEqual(szFooterUrl, ""))
-			Embed.SetFooterIcon(szFooterUrl);
-		char buffer[1000];
-		Format(buffer, sizeof buffer, "Server: %s", g_szHostname);
-		Embed.SetFooter(buffer);
+		{
+			footer.SetIconURL(szFooterUrl);
+			embed.SetFooter(footer);
+		}
 
-		//Send the message
-		hook.Embed(Embed);
-
-		hook.Send();
+		hook.AddEmbed(embed);
+		hook.Execute(webhook, OnWebHookExecuted, client);
 		delete hook;
 	}
 	else
 	{
 		// Send Discord Announcement
-		DiscordWebHook hook = new DiscordWebHook(webhook);
-		hook.SlackMode = true;
+		Webhook hook = new Webhook();
 
 		hook.SetUsername(webhookName);
 
@@ -493,7 +504,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		}
 
 		hook.SetContent(szMessage);
-		hook.Send();
+		hook.Execute(webhook, OnWebHookExecuted, client);
 		delete hook;
 	}
 }
@@ -508,23 +519,19 @@ stock void GetProfilePictureURL(int client, int style, char[] time, char[] timeD
 	pack.WriteCell(bonusGroup);
 	pack.Reset();
 
-	char szSteamID[64];
+	char szRequestBuffer[1024], szSteamID[64];
+
 	GetClientAuthId(client, AuthId_SteamID64, szSteamID, sizeof szSteamID, true);
 
-	char szURL[256] = "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/";
-	Handle request = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, szURL);
-	SteamWorks_SetHTTPRequestNetworkActivityTimeout(request, 10);
-	SteamWorks_SetHTTPRequestGetOrPostParameter(request, "key", g_szApiKey);
-	SteamWorks_SetHTTPRequestGetOrPostParameter(request, "steamids", szSteamID);
-	SteamWorks_SetHTTPRequestGetOrPostParameter(request, "format", "json");
-	SteamWorks_SetHTTPCallbacks(request, OnResponseReceived);
-	SteamWorks_SetHTTPRequestContextValue(request, pack);
-	bool bIsSentRequest = SteamWorks_SendHTTPRequest(request);
-	if(!bIsSentRequest)
-		PrintToServer("[SurfTimer-Discord] There was an error when sending the request to the Steam API.");
+	GetConVarString(g_cvSteamWebAPIKey, g_szApiKey, sizeof g_szApiKey);
+
+	Format(szRequestBuffer, sizeof szRequestBuffer, "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s&format=json", g_szApiKey,szSteamID);
+	connection = new HTTPRequest(szRequestBuffer);
+	connection.Get(OnResponseReceived, pack);
 }
 
-stock void OnResponseReceived(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, DataPack pack)
+
+stock void OnResponseReceived(HTTPResponse response, DataPack pack)
 {
 	char szTime[32];
 	char szTimeDif[32];
@@ -535,33 +542,25 @@ stock void OnResponseReceived(Handle hRequest, bool bFailure, bool bRequestSucce
 	ReadPackString(pack, szTimeDif, sizeof szTimeDif);
 	int bonusGroup = pack.ReadCell();
 
-	if(eStatusCode != k_EHTTPStatusCode200OK || !bRequestSuccessful || bFailure)
-	{
-		PrintToServer("[SurfTimer-Discord] There was an error in the Steam API's response. Is your API key valid ?");
-		sendDiscordAnnouncement(client, style, szTime, szTimeDif, bonusGroup);
+	if (response.Status != HTTPStatus_OK)
 		return;
-	}
-	int iSize;
-	SteamWorks_GetHTTPResponseBodySize(hRequest, iSize);
-	if(iSize >= 2048)
-		return;
-	char[] szData = new char[iSize];
-	SteamWorks_GetHTTPResponseBodyData(hRequest, szData, iSize);
-	Handle hData = json_load(szData);
-	Handle hResponse = json_object_get(hData, "response");
-	Handle hPlayers = json_object_get(hResponse, "players");
-	int playerslen = json_array_size(hPlayers);
 
-	Handle hPlayer;
-	for(int i = 0; i < playerslen; i++)
+	JSONObject objects = view_as<JSONObject>(response.Data);
+	JSONObject Response = view_as<JSONObject>(objects.Get("response"));
+	JSONArray players = view_as<JSONArray>(Response.Get("players"));
+	int playerlen = players.Length;
+
+	JSONObject player;
+	for (int i = 0; i < playerlen; i++)
 	{
-		hPlayer = json_array_get(hPlayers, i);
-		json_object_get_string(hPlayer, "avatarmedium", g_szPictureURL, sizeof g_szPictureURL);
-	}
-	delete hData;
-	delete hResponse;
-	delete hPlayer;
-	delete hPlayer;
+		player = view_as<JSONObject>(players.Get(i));
+		player.GetString("avatarmedium", g_szPictureURL, sizeof(g_szPictureURL));
+		delete player;
+  }
+	delete objects;
+	delete Response;
+	delete players;
+	delete player;
 	sendDiscordAnnouncement(client, style, szTime, szTimeDif, bonusGroup);
 }
 
@@ -591,4 +590,15 @@ stock bool IsValidClient(int iClient, bool bNoBots = true)
 		return false;
 	}
 	return IsClientInGame(iClient);
+}
+
+public void OnWebHookExecuted(HTTPResponse response, int client)
+{
+	PrintToServer("Processed client n°%d's webhook, status %d", client, response.Status);
+	if (response.Status != HTTPStatus_NoContent)
+	{
+		PrintToServer("An error has occured while sending the webhook.");
+		return;
+	}
+	PrintToServer("The webhook has been sent successfuly.");
 }
