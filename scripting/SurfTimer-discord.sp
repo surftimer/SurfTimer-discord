@@ -11,8 +11,8 @@ public Plugin myinfo =
 	name				= "SurfTimer-Discord",
 	author			= "Sarrus",
 	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
-	version = "2.1.0",
-	url = "https://github.com/Sarrus1/SurfTimer-discord"
+	version			= "2.1.0",
+	url					= "https://github.com/Sarrus1/SurfTimer-discord"
 };
 
 HTTPRequest connection;
@@ -64,41 +64,40 @@ WaitingFor g_iWaitingFor[MAXPLAYERS + 1];
 
 public void OnPluginStart()
 {
-	g_cvAnnounceMainWebhook	 = CreateConVar("sm_surftimer_discord_announce_main_webhook", "", "The webhook to the discord channel where you want main record messages to be sent.", FCVAR_PROTECTED);
-	g_cvAnnounceBonusWebhook = CreateConVar("sm_surftimer_discord_announce_bonus_webhook", "", "The webhook to the discord channel where you want bonus record messages to be sent.", FCVAR_PROTECTED);
-	g_cvAnnounceStyleMainWebhook = CreateConVar("sm_surftimer_discord_announce_style_main_webhook", "", "The webhook to the discord channel where you want style main record messages to be sent. Leave empty to disable", FCVAR_PROTECTED);
+	g_cvAnnounceMainWebhook				= CreateConVar("sm_surftimer_discord_announce_main_webhook", "", "The webhook to the discord channel where you want main record messages to be sent.", FCVAR_PROTECTED);
+	g_cvAnnounceBonusWebhook			= CreateConVar("sm_surftimer_discord_announce_bonus_webhook", "", "The webhook to the discord channel where you want bonus record messages to be sent.", FCVAR_PROTECTED);
+	g_cvAnnounceStyleMainWebhook	= CreateConVar("sm_surftimer_discord_announce_style_main_webhook", "", "The webhook to the discord channel where you want style main record messages to be sent. Leave empty to disable", FCVAR_PROTECTED);
 	g_cvAnnounceStyleBonusWebhook = CreateConVar("sm_surftimer_discord_announce_style_main_webhook", "", "The webhook to the discord channel where you want style bonus record messages to be sent. Leave empty to disable", FCVAR_PROTECTED);
-	g_cvReportBugsDiscord = CreateConVar("sm_surftimer_discord_report_bug_webhook", "", "The webhook to the discord channel where you want bug report messages to be sent.", FCVAR_PROTECTED);
-	g_cvCallAdminDiscord = CreateConVar("sm_surftimer_discord_calladmin_webhook", "", "The webhook to the discord channel where you want calladmin messages to be sent.", FCVAR_PROTECTED);
-	g_cvAnnounceMention = CreateConVar("sm_surftimer_discord_announce_mention", "@here", "Optional discord mention to ping users when a new record has been set.");
-	g_cvBugReportMention = CreateConVar("sm_surftimer_discord_bug_mention", "@here", "Optional discord mention to notify users when a bug report has been sent.");
-	g_cvCallAdminMention = CreateConVar("sm_surftimer_discord_calladmin_mention", "@here", "Optional discord mention to notify users when a calladmin has been sent.");
-	g_cvMainEmbedColor = CreateConVar("sm_surftimer_discord_main_embed_color", "#00ffff", "Color of the embed for when main wr is beaten");
-	g_cvBonusEmbedColor = CreateConVar("sm_surftimer_discord_bonus_embed_color", "#ff0000", "Color of the embed for when bonus wr is beaten");
-	g_cvBugReportEmbedColor = CreateConVar("sm_surftimer_discord_bug_embed_color", "#ff0000", "Color of the embed for when a bug report is sent");
-	g_cvCallAdminEmbedColor = CreateConVar("sm_surftimer_discord_admin_embed_color", "#ff0000", "Color of the embed for when an admin is called");
-	g_cvMainUrlRoot = CreateConVar("sm_surftimer_discord_main_url_root", "https://raw.githubusercontent.com/Sayt123/SurfMapPics/Maps-and-bonuses/csgo/", "The base url of where the Discord images are stored. Leave blank to disable.");
-	g_cvBotUsername = CreateConVar("sm_surftimer_discord_username", "SurfTimer BOT", "Username of the bot");
-	g_cvFooterUrl = CreateConVar("sm_surftimer_discord_footer_url", "https://images-ext-1.discordapp.net/external/tfTL-r42Kv1qP4FFY6sQYDT1BBA2fXzDjVmcknAOwNI/https/images-ext-2.discordapp.net/external/3K6ho0iMG_dIVSlaf0hFluQFRGqC2jkO9vWFUlWYOnM/https/images-ext-2.discordapp.net/external/aO9crvExsYt5_mvL72MFLp92zqYJfTnteRqczxg7wWI/https/discordsl.com/assets/img/img.png", "The url of the footer icon, leave blank to disable.");
-	g_cvSteamWebAPIKey = CreateConVar("sm_surftimer_discord_steam_api_key", "", "Allows the use of the player profile picture, leave blank to disable. The key can be obtained here: https://steamcommunity.com/dev/apikey", FCVAR_PROTECTED);
-	g_cvBonusImage = CreateConVar("sm_surftimer_discord_bonus_image", "1", "Do bonuses have a custom image such as surf_ivory_b1.jpg (1) or not (0).", _, true, 0.0, true, 1.0);
-	g_cvKSFStyle = CreateConVar("sm_surftimer_discord_announcement", "0", "Use the KSF style for announcements (1) or the regular style (0)", _, true, 0.0, true, 1.0);
-	g_cvProfileUrlType = CreateConVar("sm_surftimer_discord_profile_url_type", "0", "Profile URL redirect to Steam (0) or to your Webstats (1)", _, true, 0.0, true, 1.0);
-	g_cvWebStatsUrl = CreateConVar("sm_surftimer_discord_webstats_url", "", "Your webstats URL eg. \"https://www.mywebstats.com\" (only specify if using \"sm_surftimer_discord_profile_url_type 1\")");
-	g_cvEnableCallAdmin = CreateConVar("sm_surftimer_discord_enable_calladmin", "1", "Enable or disable the !calladmin command. 1 to enable, 0 to disable. Requires a plugin restart.", FCVAR_REPLICATED, true, 0.0, true, 1.0);
-	g_cvEnableBugReport = CreateConVar("sm_surftimer_discord_enable_bug_report", "1", "Enable or disable the !bug command. 1 to enable, 0 to disable. Requires a plugin restart.", FCVAR_REPLICATED, true, 0.0, true, 1.0);
-
+	g_cvReportBugsDiscord					= CreateConVar("sm_surftimer_discord_report_bug_webhook", "", "The webhook to the discord channel where you want bug report messages to be sent.", FCVAR_PROTECTED);
+	g_cvCallAdminDiscord					= CreateConVar("sm_surftimer_discord_calladmin_webhook", "", "The webhook to the discord channel where you want calladmin messages to be sent.", FCVAR_PROTECTED);
+	g_cvAnnounceMention						= CreateConVar("sm_surftimer_discord_announce_mention", "@here", "Optional discord mention to ping users when a new record has been set.");
+	g_cvBugReportMention					= CreateConVar("sm_surftimer_discord_bug_mention", "@here", "Optional discord mention to notify users when a bug report has been sent.");
+	g_cvCallAdminMention					= CreateConVar("sm_surftimer_discord_calladmin_mention", "@here", "Optional discord mention to notify users when a calladmin has been sent.");
+	g_cvMainEmbedColor						= CreateConVar("sm_surftimer_discord_main_embed_color", "0x00ffff", "Color of the embed for when main wr is beaten");
+	g_cvBonusEmbedColor						= CreateConVar("sm_surftimer_discord_bonus_embed_color", "0xff0000", "Color of the embed for when bonus wr is beaten");
+	g_cvBugReportEmbedColor				= CreateConVar("sm_surftimer_discord_bug_embed_color", "0xff0000", "Color of the embed for when a bug report is sent");
+	g_cvCallAdminEmbedColor				= CreateConVar("sm_surftimer_discord_admin_embed_color", "0xff0000", "Color of the embed for when an admin is called");
+	g_cvMainUrlRoot								= CreateConVar("sm_surftimer_discord_main_url_root", "https://raw.githubusercontent.com/Sayt123/SurfMapPics/Maps-and-bonuses/csgo/", "The base url of where the Discord images are stored. Leave blank to disable.");
+	g_cvBotUsername								= CreateConVar("sm_surftimer_discord_username", "SurfTimer BOT", "Username of the bot");
+	g_cvFooterUrl									= CreateConVar("sm_surftimer_discord_footer_url", "https://images-ext-1.discordapp.net/external/tfTL-r42Kv1qP4FFY6sQYDT1BBA2fXzDjVmcknAOwNI/https/images-ext-2.discordapp.net/external/3K6ho0iMG_dIVSlaf0hFluQFRGqC2jkO9vWFUlWYOnM/https/images-ext-2.discordapp.net/external/aO9crvExsYt5_mvL72MFLp92zqYJfTnteRqczxg7wWI/https/discordsl.com/assets/img/img.png", "The url of the footer icon, leave blank to disable.");
+	g_cvSteamWebAPIKey						= CreateConVar("sm_surftimer_discord_steam_api_key", "", "Allows the use of the player profile picture, leave blank to disable. The key can be obtained here: https://steamcommunity.com/dev/apikey", FCVAR_PROTECTED);
+	g_cvBonusImage								= CreateConVar("sm_surftimer_discord_bonus_image", "1", "Do bonuses have a custom image such as surf_ivory_b1.jpg (1) or not (0).", _, true, 0.0, true, 1.0);
+	g_cvKSFStyle									= CreateConVar("sm_surftimer_discord_announcement", "0", "Use the KSF style for announcements (1) or the regular style (0)", _, true, 0.0, true, 1.0);
+	g_cvProfileUrlType						= CreateConVar("sm_surftimer_discord_profile_url_type", "0", "Profile URL redirect to Steam (0) or to your Webstats (1)", _, true, 0.0, true, 1.0);
+	g_cvWebStatsUrl								= CreateConVar("sm_surftimer_discord_webstats_url", "", "Your webstats URL eg. \"https://www.mywebstats.com\" (only specify if using \"sm_surftimer_discord_profile_url_type 1\")");
+	g_cvEnableCallAdmin						= CreateConVar("sm_surftimer_discord_enable_calladmin", "1", "Enable or disable the !calladmin command. 1 to enable, 0 to disable. Requires a plugin restart.", FCVAR_REPLICATED, true, 0.0, true, 1.0);
+	g_cvEnableBugReport						= CreateConVar("sm_surftimer_discord_enable_bug_report", "1", "Enable or disable the !bug command. 1 to enable, 0 to disable. Requires a plugin restart.", FCVAR_REPLICATED, true, 0.0, true, 1.0);
 
 	g_cvHostname = FindConVar("hostname");
 	g_cvHostname.GetString(g_szHostname, sizeof g_szHostname);
 	g_cvHostname.AddChangeHook(OnConVarChanged);
 
 	RegAdminCmd("sm_ck_discordtest", CommandDiscordTest, ADMFLAG_ROOT, "Test the discord announcement");
-	if(g_cvEnableCallAdmin.BoolValue)
+	if (g_cvEnableCallAdmin.BoolValue)
 	{
 		RegConsoleCmd("sm_calladmin", CommandCallAdmin, "Send a calladmin request to a discord server.");
 	}
-	if(g_cvEnableBugReport.BoolValue)
+	if (g_cvEnableBugReport.BoolValue)
 	{
 		RegConsoleCmd("sm_bug", CommandReportBug, "Send a bug report to a discord server.");
 	}
@@ -410,7 +409,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 {
 	// Get the WebHook
 	char webhook[1024], webhookName[1024];
-	if(bonusGroup == -1)
+	if (bonusGroup == -1)
 	{
 		GetConVarString(style == 0 ? g_cvAnnounceMainWebhook : g_cvAnnounceStyleMainWebhook, webhook, 1024);
 	}
