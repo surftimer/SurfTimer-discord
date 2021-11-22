@@ -2,6 +2,10 @@
 
 ## [2.0.1]
 
+### Added
+
+- Added separate webhooks for styled records (see #8).
+
 ### Fixed
 
 - Fixed colors not being parsed properly.
