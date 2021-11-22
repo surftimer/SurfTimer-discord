@@ -12,7 +12,7 @@ public Plugin myinfo =
 	name = "SurfTimer-Discord",
 	author = "Sarrus",
 	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
-	version = "2.0.0",
+	version = "2.1.0",
 	url = "https://github.com/Sarrus1/SurfTimer-discord"
 };
 
@@ -248,7 +248,9 @@ public void SendBugReport(int iClient, char[] szText)
 
 	Embed embed = new Embed();
 
-	embed.SetColor(g_cvBugReportEmbedColor.IntValue);
+	char color[16];
+	GetConVarString(g_cvBugReportEmbedColor, color, sizeof color);
+	embed.SetColor(StringToInt(color, 16));
 
 	// Format Title
 	char szTitle[256];
@@ -318,7 +320,9 @@ public void SendCallAdmin(int iClient, char[] szText)
 
 	Embed embed = new Embed();
 
-	embed.SetColor(g_cvCallAdminEmbedColor.IntValue);
+	char color[16];
+	GetConVarString(g_cvCallAdminEmbedColor, color, sizeof color);
+	embed.SetColor(StringToInt(color, 16));
 
 	// Format title
 	char szTitle[256];
@@ -433,7 +437,9 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		//Create the embed message
 		Embed embed = new Embed();
 
-		embed.SetColor(bonusGroup == -1 ? g_cvMainEmbedColor.IntValue : g_cvBonusEmbedColor.IntValue);
+		char color[16];
+		GetConVarString(bonusGroup == -1 ? g_cvMainEmbedColor : g_cvBonusEmbedColor, color, sizeof color);
+		embed.SetColor(StringToInt(color, 16));
 
 		char szTimeDiscord[128];
 		Format(szTimeDiscord, sizeof(szTimeDiscord), "%s (%s)", szTime, szTimeDif);
