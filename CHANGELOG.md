@@ -5,6 +5,7 @@
 ### Added
 
 - Added separate webhooks for styled records (see #8).
+- Added a way to disable the `!calladmin` and `!bug` commands.
 
 ### Fixed
 

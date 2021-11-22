@@ -41,6 +41,8 @@ ConVar g_cvKSFStyle;
 ConVar g_cvBonusImage;
 ConVar g_cvProfileUrlType;
 ConVar g_cvWebStatsUrl;
+ConVar g_cvEnableCallAdmin;
+ConVar g_cvEnableBugReport;
 
 char g_szHostname[256];
 char g_szApiKey[256];
@@ -84,14 +86,23 @@ public void OnPluginStart()
 	g_cvKSFStyle = CreateConVar("sm_surftimer_discord_announcement", "0", "Use the KSF style for announcements (1) or the regular style (0)", _, true, 0.0, true, 1.0);
 	g_cvProfileUrlType = CreateConVar("sm_surftimer_discord_profile_url_type", "0", "Profile URL redirect to Steam (0) or to your Webstats (1)", _, true, 0.0, true, 1.0);
 	g_cvWebStatsUrl = CreateConVar("sm_surftimer_discord_webstats_url", "", "Your webstats URL eg. \"https://www.mywebstats.com\" (only specify if using \"sm_surftimer_discord_profile_url_type 1\")");
+	g_cvEnableCallAdmin = CreateConVar("sm_surftimer_discord_enable_calladmin", "1", "Enable or disable the !calladmin command. 1 to enable, 0 to disable. Requires a plugin restart.", FCVAR_REPLICATED, true, 0.0, true, 1.0);
+	g_cvEnableBugReport = CreateConVar("sm_surftimer_discord_enable_bug_report", "1", "Enable or disable the !bug command. 1 to enable, 0 to disable. Requires a plugin restart.", FCVAR_REPLICATED, true, 0.0, true, 1.0);
+
 
 	g_cvHostname = FindConVar("hostname");
 	g_cvHostname.GetString(g_szHostname, sizeof g_szHostname);
 	g_cvHostname.AddChangeHook(OnConVarChanged);
 
 	RegAdminCmd("sm_ck_discordtest", CommandDiscordTest, ADMFLAG_ROOT, "Test the discord announcement");
-	RegConsoleCmd("sm_calladmin", CommandCallAdmin, "Send a calladmin request to a discord server.");
-	RegConsoleCmd("sm_bug", CommandReportBug, "Send a bug report to a discord server.");
+	if(g_cvEnableCallAdmin.BoolValue)
+	{
+		RegConsoleCmd("sm_calladmin", CommandCallAdmin, "Send a calladmin request to a discord server.");
+	}
+	if(g_cvEnableBugReport.BoolValue)
+	{
+		RegConsoleCmd("sm_bug", CommandReportBug, "Send a bug report to a discord server.");
+	}
 
 	AddCommandListener(SayHook, "say");
 	AddCommandListener(SayHook, "say_team");
