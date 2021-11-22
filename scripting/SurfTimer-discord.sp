@@ -65,8 +65,8 @@ public void OnPluginStart()
 {
 	g_cvAnnounceMainWebhook = CreateConVar("sm_surftimer_discord_announce_main_webhook", "", "The webhook to the discord channel where you want main record messages to be sent.", FCVAR_PROTECTED);
 	g_cvAnnounceBonusWebhook = CreateConVar("sm_surftimer_discord_announce_bonus_webhook", "", "The webhook to the discord channel where you want bonus record messages to be sent.", FCVAR_PROTECTED);
-	g_cvAnnounceStyleMainWebhook = CreateConVar("sm_surftimer_discord_announce_style_main_webhook", "", "The webhook to the discord channel where you want style main record messages to be sent.", FCVAR_PROTECTED);
-	g_cvAnnounceStyleBonusWebhook = CreateConVar("sm_surftimer_discord_announce_style_main_webhook", "", "The webhook to the discord channel where you want style bonus record messages to be sent.", FCVAR_PROTECTED);
+	g_cvAnnounceStyleMainWebhook = CreateConVar("sm_surftimer_discord_announce_style_main_webhook", "", "The webhook to the discord channel where you want style main record messages to be sent. Leave empty to disable", FCVAR_PROTECTED);
+	g_cvAnnounceStyleBonusWebhook = CreateConVar("sm_surftimer_discord_announce_style_main_webhook", "", "The webhook to the discord channel where you want style bonus record messages to be sent. Leave empty to disable", FCVAR_PROTECTED);
 	g_cvReportBugsDiscord = CreateConVar("sm_surftimer_discord_report_bug_webhook", "", "The webhook to the discord channel where you want bug report messages to be sent.", FCVAR_PROTECTED);
 	g_cvCallAdminDiscord = CreateConVar("sm_surftimer_discord_calladmin_webhook", "", "The webhook to the discord channel where you want calladmin messages to be sent.", FCVAR_PROTECTED);
 	g_cvAnnounceMention = CreateConVar("sm_surftimer_discord_announce_mention", "@here", "Optional discord mention to ping users when a new record has been set.");
