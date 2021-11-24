@@ -73,10 +73,10 @@ public void OnPluginStart()
 	g_cvAnnounceMention						= CreateConVar("sm_surftimer_discord_announce_mention", "@here", "Optional discord mention to ping users when a new record has been set.");
 	g_cvBugReportMention					= CreateConVar("sm_surftimer_discord_bug_mention", "@here", "Optional discord mention to notify users when a bug report has been sent.");
 	g_cvCallAdminMention					= CreateConVar("sm_surftimer_discord_calladmin_mention", "@here", "Optional discord mention to notify users when a calladmin has been sent.");
-	g_cvMainEmbedColor						= CreateConVar("sm_surftimer_discord_main_embed_color", "0x00ffff", "Color of the embed for when main wr is beaten");
-	g_cvBonusEmbedColor						= CreateConVar("sm_surftimer_discord_bonus_embed_color", "0xff0000", "Color of the embed for when bonus wr is beaten");
-	g_cvBugReportEmbedColor				= CreateConVar("sm_surftimer_discord_bug_embed_color", "0xff0000", "Color of the embed for when a bug report is sent");
-	g_cvCallAdminEmbedColor				= CreateConVar("sm_surftimer_discord_admin_embed_color", "0xff0000", "Color of the embed for when an admin is called");
+	g_cvMainEmbedColor						= CreateConVar("sm_surftimer_discord_main_embed_color", "0x00ffff", "Color of the embed for when main wr is beaten. Replace the usual '#' with '0x'.");
+	g_cvBonusEmbedColor						= CreateConVar("sm_surftimer_discord_bonus_embed_color", "0xff0000", "Color of the embed for when bonus wr is beaten. Replace the usual '#' with '0x'.");
+	g_cvBugReportEmbedColor				= CreateConVar("sm_surftimer_discord_bug_embed_color", "0xff0000", "Color of the embed for when a bug report is sent. Replace the usual '#' with '0x'.");
+	g_cvCallAdminEmbedColor				= CreateConVar("sm_surftimer_discord_admin_embed_color", "0xff0000", "Color of the embed for when an admin is called. Replace the usual '#' with '0x'.");
 	g_cvMainUrlRoot								= CreateConVar("sm_surftimer_discord_main_url_root", "https://raw.githubusercontent.com/Sayt123/SurfMapPics/Maps-and-bonuses/csgo/", "The base url of where the Discord images are stored. Leave blank to disable.");
 	g_cvBotUsername								= CreateConVar("sm_surftimer_discord_username", "SurfTimer BOT", "Username of the bot");
 	g_cvFooterUrl									= CreateConVar("sm_surftimer_discord_footer_url", "https://images-ext-1.discordapp.net/external/tfTL-r42Kv1qP4FFY6sQYDT1BBA2fXzDjVmcknAOwNI/https/images-ext-2.discordapp.net/external/3K6ho0iMG_dIVSlaf0hFluQFRGqC2jkO9vWFUlWYOnM/https/images-ext-2.discordapp.net/external/aO9crvExsYt5_mvL72MFLp92zqYJfTnteRqczxg7wWI/https/discordsl.com/assets/img/img.png", "The url of the footer icon, leave blank to disable.");
