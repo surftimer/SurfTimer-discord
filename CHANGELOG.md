@@ -1,5 +1,11 @@
 ﻿## Release Notes
 
+## [2.0.2]
+
+### Fixed
+
+- Wrong webstat URL.
+
 ## [2.0.1]
 
 ### Added
