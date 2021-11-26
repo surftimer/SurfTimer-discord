@@ -50,7 +50,7 @@ char g_szBugType[MAXPLAYERS + 1][32];
 char g_szProfileUrl[256];
 
 bool g_bIsSurfTimerEnabled = false;
-bool g_bDebugging = false;
+bool g_bDebugging					 = false;
 
 enum WaitingFor
 {
@@ -107,13 +107,13 @@ public void OnPluginStart()
 	GetConVarString(g_cvSteamWebAPIKey, g_szApiKey, sizeof g_szApiKey);
 
 	if (g_cvProfileUrlType.BoolValue)
-  {
-    GetConVarString(g_cvWebStatsUrl, g_szProfileUrl, sizeof g_szProfileUrl);
-  }
+	{
+		GetConVarString(g_cvWebStatsUrl, g_szProfileUrl, sizeof g_szProfileUrl);
+	}
 	else
-  {
+	{
 		Format(g_szProfileUrl, sizeof g_szProfileUrl, "https://steamcommunity.com/profiles");
-  }
+	}
 
 	AutoExecConfig(true, "SurfTimer-Discord");
 
@@ -353,13 +353,13 @@ public void SendCallAdmin(int iClient, char[] szText)
 	char szPlayerID[256], szSteamId[64], szName[MAX_NAME_LENGTH];
 	GetClientName(iClient, szName, sizeof szName);
 	if (g_cvProfileUrlType.BoolValue)
-  {
+	{
 		GetClientAuthId(iClient, AuthId_Steam2, szSteamId, sizeof szSteamId);
-  }
+	}
 	else
-  {
+	{
 		GetClientAuthId(iClient, AuthId_SteamID64, szSteamId, sizeof szSteamId);
-  }
+	}
 
 	Format(szPlayerID, sizeof szPlayerID, "[%s](%s/%s)", szName, g_szProfileUrl, szSteamId);
 
@@ -433,13 +433,13 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 	GetClientName(client, szName, sizeof szName);
 
 	if (g_cvProfileUrlType.BoolValue)
-  {
+	{
 		GetClientAuthId(client, AuthId_Steam2, szSteamId, sizeof szSteamId);
-  }
+	}
 	else
-  {
+	{
 		GetClientAuthId(client, AuthId_SteamID64, szSteamId, sizeof szSteamId);
-  }
+	}
 
 	Format(szPlayerID, sizeof szPlayerID, "[%s](%s/%s)", szName, g_szProfileUrl, szSteamId);
 
