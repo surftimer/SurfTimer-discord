@@ -11,7 +11,7 @@ public Plugin myinfo =
 	name        = "SurfTimer-Discord",
 	author      = "Sarrus",
 	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
-	version     = "2.1.0",
+	version     = "2.1.1",
 	url         = "https://github.com/Sarrus1/SurfTimer-discord"
 };
 
@@ -92,6 +92,17 @@ public void OnPluginStart()
 	g_cvHostname.AddChangeHook(OnConVarChanged);
 
 	RegAdminCmd("sm_ck_discordtest", CommandDiscordTest, ADMFLAG_ROOT, "Test the discord announcement");
+
+	AddCommandListener(SayHook, "say");
+	AddCommandListener(SayHook, "say_team");
+
+	AutoExecConfig(true, "SurfTimer-Discord");
+
+	LoadTranslations("SurfTimer-discord.phrases.txt");
+}
+
+public void OnConfigsExecuted()
+{
 	if (g_cvEnableCallAdmin.BoolValue)
 	{
 		RegConsoleCmd("sm_calladmin", CommandCallAdmin, "Send a calladmin request to a discord server.");
@@ -100,9 +111,6 @@ public void OnPluginStart()
 	{
 		RegConsoleCmd("sm_bug", CommandReportBug, "Send a bug report to a discord server.");
 	}
-
-	AddCommandListener(SayHook, "say");
-	AddCommandListener(SayHook, "say_team");
 
 	GetConVarString(g_cvSteamWebAPIKey, g_szApiKey, sizeof g_szApiKey);
 
@@ -114,10 +122,6 @@ public void OnPluginStart()
 	{
 		strcopy(g_szProfileUrl, sizeof g_szProfileUrl, "https://steamcommunity.com/profiles");
 	}
-
-	AutoExecConfig(true, "SurfTimer-Discord");
-
-	LoadTranslations("SurfTimer-discord.phrases.txt");
 }
 
 public void OnAllPluginsLoaded()

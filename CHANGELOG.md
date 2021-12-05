@@ -1,5 +1,11 @@
 ﻿## Release Notes
 
+## [2.1.1]
+
+### Fixed
+
+- Fixed incorrect ConVar values.
+
 ## [2.0.2]
 
 ### Fixed
@@ -16,7 +22,6 @@
 ### Fixed
 
 - Fixed colors not being parsed properly.
-
 
 ## [2.0.0]
 
