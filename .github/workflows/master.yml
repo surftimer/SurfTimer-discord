@@ -1,8 +1,6 @@
-name: Compile with SourceMod
+name: Compile and release
 
 on:
-  pull_request:
-    branches: master
   push:
     branches: master
 
