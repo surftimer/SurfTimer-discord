@@ -32,6 +32,10 @@ jobs:
           done
           echo "===OUT FILES==="
           ls
+          cd ../
+          ls
+          cd plugins
+          ls
           echo version = ${{ steps.setup_sp.outputs.plugin-version }}
         working-directory: ${{ env.SCRIPTS_PATH }}
 
