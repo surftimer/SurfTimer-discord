@@ -11,7 +11,7 @@ public Plugin myinfo =
 	name        = "SurfTimer-Discord",
 	author      = "Sarrus",
 	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
-	version     = "2.1.1",
+	version     = "2.1.2",
 	url         = "https://github.com/Sarrus1/SurfTimer-discord"
 };
 
@@ -484,7 +484,8 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		// Create the embed message
 		Embed embed = new Embed();
 
-		char color[16];
+		char color[16], MapTier[16];
+		IntToString(surftimer_GetMapTier(), MapTier, sizeof(MapTier));
 		GetConVarString(bonusGroup == -1 ? g_cvMainEmbedColor : g_cvBonusEmbedColor, color, sizeof color);
 		embed.SetColor(StringToInt(color, 16));
 
@@ -495,6 +496,8 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		EmbedField field = new EmbedField("Player", szPlayerID, true);
 		embed.AddField(field);
 		field = new EmbedField("Time", szTimeDiscord, true);
+		embed.AddField(field);
+		field = new EmbedField("Map Tier", MapTier, true);
 		embed.AddField(field);
 
 		char szUrlMain[1024];
