@@ -430,13 +430,13 @@ public void surftimer_OnNewWRCP(int client, int style, char[] time, char[] timeD
 		GetProfilePictureURL(client, style, time, timeDif, -1, stage);
 	else
 		sendDiscordAnnouncement(client, style, time, timeDif, -1, stage);
-	/*
-	CPrintToChatAll("Client: {gold}%i", client);
-	CPrintToChatAll("Style: {gold}%i", style);
+	
+	CPrintToChatAll("Client: {gold}%d", client);
+	CPrintToChatAll("Style: {gold}%d", style);
 	CPrintToChatAll("Time: {gold}%s", time);
 	CPrintToChatAll("Difference: {gold}%s", timeDif);
-	CPrintToChatAll("Stage: {gold}%i", stage);
-	*/
+	CPrintToChatAll("Stage: {gold}%d", stage);
+	
 	CPrintToChatAll("[STAGE] timeDif: %s", timeDif);
 }
 
