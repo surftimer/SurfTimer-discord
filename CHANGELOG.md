@@ -1,5 +1,10 @@
 ﻿## Release Notes
 
+## [2.1.3]
+
+### Added
+
+- Added stage record announcements
 ## [2.1.2]
 
 ### Added
