@@ -165,7 +165,7 @@ public Action CommandDiscordTest(int client, int args)
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", 1);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending stage record test message.");
-	surftimer_OnNewWRCP(client, 0, "00:00:00", "-00:0:00", 3);
+	surftimer_OnNewWRCP(client, 0, "00:00:00", "-00:00:00", 3);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending styled record test message.");
 	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", 1);	
 	return Plugin_Handled;
