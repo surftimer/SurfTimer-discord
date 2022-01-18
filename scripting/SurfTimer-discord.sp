@@ -11,13 +11,14 @@ public Plugin myinfo =
 	name        = "SurfTimer-Discord",
 	author      = "Sarrus",
 	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
-	version     = "2.1.2",
+	version     = "2.1.3",
 	url         = "https://github.com/Sarrus1/SurfTimer-discord"
 };
 
 HTTPRequest connection;
 
 ConVar g_cvAnnounceMainWebhook;
+ConVar g_cvAnnounceStageWebhook;
 ConVar g_cvAnnounceBonusWebhook;
 ConVar g_cvAnnounceStyleMainWebhook;
 ConVar g_cvAnnounceStyleBonusWebhook;
@@ -64,6 +65,7 @@ WaitingFor g_iWaitingFor[MAXPLAYERS + 1];
 public void OnPluginStart()
 {
 	g_cvAnnounceMainWebhook       = CreateConVar("sm_surftimer_discord_announce_main_webhook", "", "The webhook to the discord channel where you want main record messages to be sent.", FCVAR_PROTECTED);
+	g_cvAnnounceStageWebhook      = CreateConVar("sm_surftimer_discord_announce_stage_webhook", "", "The webhook to the discord channel where you want stage record messages to be sent.", FCVAR_PROTECTED);
 	g_cvAnnounceBonusWebhook      = CreateConVar("sm_surftimer_discord_announce_bonus_webhook", "", "The webhook to the discord channel where you want bonus record messages to be sent.", FCVAR_PROTECTED);
 	g_cvAnnounceStyleMainWebhook  = CreateConVar("sm_surftimer_discord_announce_style_main_webhook", "", "The webhook to the discord channel where you want style main record messages to be sent. Leave empty to disable", FCVAR_PROTECTED);
 	g_cvAnnounceStyleBonusWebhook = CreateConVar("sm_surftimer_discord_announce_style_main_webhook", "", "The webhook to the discord channel where you want style bonus record messages to be sent. Leave empty to disable", FCVAR_PROTECTED);
@@ -162,6 +164,8 @@ public Action CommandDiscordTest(int client, int args)
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", -1);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", 1);
+	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending stage record test message.");
+	surftimer_OnNewWRCP(client, 0, "00:00:00", "-00:00:00", 3);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending styled record test message.");
 	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", 1);	
 	return Plugin_Handled;
@@ -411,22 +415,37 @@ public void OnMapStart()
 public void surftimer_OnNewRecord(int client, int style, char[] time, char[] timeDif, int bonusGroup)
 {
 	if (strncmp(g_szApiKey, "", 1) != 0)
-		GetProfilePictureURL(client, style, time, timeDif, bonusGroup);
+		GetProfilePictureURL(client, style, time, timeDif, bonusGroup, -1);
 	else
-		sendDiscordAnnouncement(client, style, time, timeDif, bonusGroup);
+		sendDiscordAnnouncement(client, style, time, timeDif, bonusGroup, -1);
 }
 
-stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] szTimeDif, int bonusGroup)
+public void surftimer_OnNewWRCP(int client, int style, char[] time, char[] timeDif, int stage)
+{
+	if (strncmp(g_szApiKey, "", 1) != 0)
+		GetProfilePictureURL(client, style, time, timeDif, -1, stage);
+	else
+		sendDiscordAnnouncement(client, style, time, timeDif, -1, stage);
+}
+
+stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] szTimeDif, int bonusGroup, int stage)
 {
 	// Get the WebHook
 	char webhook[1024], webhookName[1024];
-	if (bonusGroup == -1)
+	if (bonusGroup == -1 && stage < 1)
 	{
 		GetConVarString(style == 0 ? g_cvAnnounceMainWebhook : g_cvAnnounceStyleMainWebhook, webhook, 1024);
 	}
 	else
 	{
-		GetConVarString(style == 0 ? g_cvAnnounceBonusWebhook : g_cvAnnounceStyleBonusWebhook, webhook, 1024);
+		if (stage > 0)
+		{
+			GetConVarString(style == 0 ? g_cvAnnounceStageWebhook : g_cvAnnounceStyleMainWebhook, webhook, 1024);
+		}
+		else
+		{
+			GetConVarString(style == 0 ? g_cvAnnounceBonusWebhook : g_cvAnnounceStyleBonusWebhook, webhook, 1024);
+		}
 	}
 	GetConVarString(g_cvBotUsername, webhookName, 1024);
 	if (StrEqual(webhook, ""))
@@ -472,13 +491,20 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		}
 
 		char szTitle[256];
-		if (bonusGroup == -1)
+		if (bonusGroup == -1 && stage < 1)
 		{
 			Format(szTitle, sizeof(szTitle), "__**New World Record**__ | **%s** - **%s**", g_szCurrentMap, szPlayerStyle);
 		}
 		else
 		{
-			Format(szTitle, sizeof(szTitle), "__**New Bonus #%i World Record**__ | **%s** - **%s**", bonusGroup, g_szCurrentMap, szPlayerStyle);
+			if (stage > 0)
+			{
+				Format(szTitle, sizeof(szTitle), "__**New Stage #%i World Record**__ | **%s** - **%s**", stage, g_szCurrentMap, szPlayerStyle);
+			}
+			else
+			{
+				Format(szTitle, sizeof(szTitle), "__**New Bonus #%i World Record**__ | **%s** - **%s**", bonusGroup, g_szCurrentMap, szPlayerStyle);
+			}
 		}
 
 		// Create the embed message
@@ -555,15 +581,21 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		// Format The Message
 		char szMessage[256];
 
-		if (bonusGroup == -1)
+		if (bonusGroup == -1 && stage < 1)
 		{
 			Format(szMessage, sizeof(szMessage), "```md\n# New Server Record on %s #\n\n[%s] beat the server record on < %s > with a time of < %s (%s) > ]:```", g_szHostname, szName, g_szCurrentMap, szTime, szTimeDif);
 		}
 		else
 		{
-			Format(szMessage, sizeof(szMessage), "```md\n# New Bonus #%i Record on %s #\n\n[%s] beat the bonus #%i record on < %s > with a time of < %s (%s) > ]:```", bonusGroup, g_szHostname, szName, bonusGroup, g_szCurrentMap, szTime, szTimeDif);
+			if (stage > 0)
+			{
+				Format(szMessage, sizeof(szMessage), "```md\n# New Stage #%i Record on %s #\n\n[%s] beat the stage #%i record on < %s > with a time of < %s (%s) > ]:```", stage, g_szHostname, szName, stage, g_szCurrentMap, szTime, szTimeDif);
+			}
+			else
+			{
+				Format(szMessage, sizeof(szMessage), "```md\n# New Bonus #%i Record on %s #\n\n[%s] beat the bonus #%i record on < %s > with a time of < %s (%s) > ]:```", bonusGroup, g_szHostname, szName, bonusGroup, g_szCurrentMap, szTime, szTimeDif);
+			}
 		}
-
 		hook.SetContent(szMessage);
 		hook.Execute(webhook, OnWebHookExecuted, client);
 		if (g_bDebugging)
@@ -576,7 +608,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 	}
 }
 
-stock void GetProfilePictureURL(int client, int style, char[] time, char[] timeDif, int bonusGroup)
+stock void GetProfilePictureURL(int client, int style, char[] time, char[] timeDif, int bonusGroup, int stage)
 {
 	DataPack pack = new DataPack();
 	pack.WriteCell(client);
@@ -584,6 +616,7 @@ stock void GetProfilePictureURL(int client, int style, char[] time, char[] timeD
 	pack.WriteString(time);
 	pack.WriteString(timeDif);
 	pack.WriteCell(bonusGroup);
+	pack.WriteCell(stage);
 	pack.Reset();
 
 	char szRequestBuffer[1024], szSteamID[64];
@@ -607,6 +640,7 @@ stock void OnResponseReceived(HTTPResponse response, DataPack pack)
 	ReadPackString(pack, szTime, sizeof szTime);
 	ReadPackString(pack, szTimeDif, sizeof szTimeDif);
 	int bonusGroup = pack.ReadCell();
+	int stage = pack.ReadCell();
 
 	if (response.Status != HTTPStatus_OK)
 		return;
@@ -627,7 +661,7 @@ stock void OnResponseReceived(HTTPResponse response, DataPack pack)
 	delete Response;
 	delete players;
 	delete player;
-	sendDiscordAnnouncement(client, style, szTime, szTimeDif, bonusGroup);
+	sendDiscordAnnouncement(client, style, szTime, szTimeDif, bonusGroup, stage);
 }
 
 stock void RemoveWorkshop(char[] szMapName, int len)
