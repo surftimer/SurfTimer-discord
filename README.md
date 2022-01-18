@@ -15,6 +15,9 @@ The messages will look like this:
 - [SurfTimer-Official (main project or Sad's fork)](https://github.com/surftimer/Surftimer-Official)
 - [SM-RipExt](https://github.com/ErikMinekus/sm-ripext/releases/latest)
 
+## Note:
+The stage record feature will only work with the version `1.0.5` or above of the main project.
+
 ## Installation
 
 1. Grab the latest release from the release page and unzip it in your sourcemod folder.
