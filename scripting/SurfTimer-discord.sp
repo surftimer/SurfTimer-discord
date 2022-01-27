@@ -165,7 +165,7 @@ public Action CommandDiscordTest(int client, int args)
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", 1);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending stage record test message.");
-	surftimer_OnNewWRCP(client, 0, "00:00:00", "-11:11:11", 3);
+	surftimer_OnNewWRCP(client, 0, "00:00:00", "-00:00:00", 3);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending styled record test message.");
 	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", 1);	
 	return Plugin_Handled;
@@ -418,11 +418,7 @@ public void surftimer_OnNewRecord(int client, int style, char[] time, char[] tim
 		GetProfilePictureURL(client, style, time, timeDif, bonusGroup, -1);
 	else
 		sendDiscordAnnouncement(client, style, time, timeDif, bonusGroup, -1);
-		
-	CPrintToChatAll("[MAP] timeDif: %s", timeDif);
 }
-
-
 
 public void surftimer_OnNewWRCP(int client, int style, char[] time, char[] timeDif, int stage)
 {
@@ -430,16 +426,7 @@ public void surftimer_OnNewWRCP(int client, int style, char[] time, char[] timeD
 		GetProfilePictureURL(client, style, time, timeDif, -1, stage);
 	else
 		sendDiscordAnnouncement(client, style, time, timeDif, -1, stage);
-	
-	CPrintToChatAll("Client: {gold}%d", client);
-	CPrintToChatAll("Style: {gold}%d", style);
-	CPrintToChatAll("Time: {gold}%s", time);
-	CPrintToChatAll("Difference: {gold}%s", timeDif);
-	CPrintToChatAll("Stage: {gold}%d", stage);
-	
-	CPrintToChatAll("[STAGE] timeDif: %s", timeDif);
 }
-
 
 stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] szTimeDif, int bonusGroup, int stage)
 {

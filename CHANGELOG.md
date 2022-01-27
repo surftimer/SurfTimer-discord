@@ -1,10 +1,17 @@
 ﻿## Release Notes
 
+## [2.1.3]
+
+### Added
+
+- Added stage record announcements.
+
 ## [2.1.2]
 
 ### Added
 
-- Added Map Tier to be displayed on Discord embed
+- Added Map Tier to be displayed on Discord embed.
+
 ## [2.1.1]
 
 ### Fixed
