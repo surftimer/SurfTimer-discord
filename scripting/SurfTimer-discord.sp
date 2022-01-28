@@ -21,6 +21,7 @@ ConVar g_cvAnnounceMainWebhook;
 ConVar g_cvAnnounceStageWebhook;
 ConVar g_cvAnnounceBonusWebhook;
 ConVar g_cvAnnounceStyleMainWebhook;
+ConVar g_cvAnnounceStyleStageWebhook;
 ConVar g_cvAnnounceStyleBonusWebhook;
 ConVar g_cvReportBugsDiscord;
 ConVar g_cvCallAdminDiscord;
@@ -68,7 +69,8 @@ public void OnPluginStart()
 	g_cvAnnounceStageWebhook      = CreateConVar("sm_surftimer_discord_announce_stage_webhook", "", "The webhook to the discord channel where you want stage record messages to be sent.", FCVAR_PROTECTED);
 	g_cvAnnounceBonusWebhook      = CreateConVar("sm_surftimer_discord_announce_bonus_webhook", "", "The webhook to the discord channel where you want bonus record messages to be sent.", FCVAR_PROTECTED);
 	g_cvAnnounceStyleMainWebhook  = CreateConVar("sm_surftimer_discord_announce_style_main_webhook", "", "The webhook to the discord channel where you want style main record messages to be sent. Leave empty to disable", FCVAR_PROTECTED);
-	g_cvAnnounceStyleBonusWebhook = CreateConVar("sm_surftimer_discord_announce_style_main_webhook", "", "The webhook to the discord channel where you want style bonus record messages to be sent. Leave empty to disable", FCVAR_PROTECTED);
+	g_cvAnnounceStyleStageWebhook = CreateConVar("sm_surftimer_discord_announce_style_stage_webhook", "", "The webhook to the discord channel where you want style stage record messages to be sent. Leave empty to disable", FCVAR_PROTECTED);
+	g_cvAnnounceStyleBonusWebhook = CreateConVar("sm_surftimer_discord_announce_style_bonus_webhook", "", "The webhook to the discord channel where you want style bonus record messages to be sent. Leave empty to disable", FCVAR_PROTECTED);
 	g_cvReportBugsDiscord         = CreateConVar("sm_surftimer_discord_report_bug_webhook", "", "The webhook to the discord channel where you want bug report messages to be sent.", FCVAR_PROTECTED);
 	g_cvCallAdminDiscord          = CreateConVar("sm_surftimer_discord_calladmin_webhook", "", "The webhook to the discord channel where you want calladmin messages to be sent.", FCVAR_PROTECTED);
 	g_cvAnnounceMention           = CreateConVar("sm_surftimer_discord_announce_mention", "@here", "Optional discord mention to ping users when a new record has been set.");
@@ -166,8 +168,12 @@ public Action CommandDiscordTest(int client, int args)
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", 1);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending stage record test message.");
 	surftimer_OnNewWRCP(client, 0, "00:00:00", "-00:00:00", 3);
-	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending styled record test message.");
-	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", 1);	
+	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} bonus record test message.");
+	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", 1);
+	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} main record test message.");
+	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", -1);
+	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} stage record test message.");
+	surftimer_OnNewWRCP(client, 5, "00:00:00", "-00:00:00", 3);
 	return Plugin_Handled;
 }
 
@@ -260,7 +266,7 @@ public void SendBugReport(int iClient, char[] szText)
 
 	char szMention[128];
 	GetConVarString(g_cvBugReportMention, szMention, sizeof szMention);
-	if (!StrEqual(szMention, ""))  // Checks if mention is disabled
+	if (!StrEqual(szMention, ""))    // Checks if mention is disabled
 	{
 		hook.SetContent(szMention);
 	}
@@ -339,7 +345,7 @@ public void SendCallAdmin(int iClient, char[] szText)
 
 	char szMention[128];
 	GetConVarString(g_cvCallAdminMention, szMention, sizeof szMention);
-	if (!StrEqual(szMention, ""))  // Checks if mention is disabled
+	if (!StrEqual(szMention, ""))    // Checks if mention is disabled
 	{
 		hook.SetContent(szMention);
 	}
@@ -440,7 +446,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 	{
 		if (stage > 0)
 		{
-			GetConVarString(style == 0 ? g_cvAnnounceStageWebhook : g_cvAnnounceStyleMainWebhook, webhook, 1024);
+			GetConVarString(style == 0 ? g_cvAnnounceStageWebhook : g_cvAnnounceStyleStageWebhook, webhook, 1024);
 		}
 		else
 		{
@@ -640,7 +646,7 @@ stock void OnResponseReceived(HTTPResponse response, DataPack pack)
 	ReadPackString(pack, szTime, sizeof szTime);
 	ReadPackString(pack, szTimeDif, sizeof szTimeDif);
 	int bonusGroup = pack.ReadCell();
-	int stage = pack.ReadCell();
+	int stage      = pack.ReadCell();
 
 	if (response.Status != HTTPStatus_OK)
 		return;
