@@ -1,5 +1,16 @@
 ﻿## Release Notes
 
+## [2.1.4]
+
+### Added
+
+- Added a new ConVar for styled stages webhook.
+- Added all styled messages to be printed upon using **sm_ck_discordtest**
+
+### Fixed
+
+-Fixed a ConVar conflict from **v2.1.3**
+
 ## [2.1.3]
 
 ### Added
