@@ -1,0 +1,23 @@
+﻿"Phrases"
+{
+	"CallAdmin Callback"
+	{
+		"ru"		"{green}Введите своё сообщение. Введите cancel для отмены."
+	}
+	"BugReport Callback"
+	{
+		"ru"		"{green}Введите своё сообщение. Введите cancel для отмены."
+	}
+	"Cancelled"
+	{
+		"ru"		"{green}Отменено."
+	}
+	"CallAdmin Sent"
+	{
+		"ru"		"{green}Администратор был вызван - спасибо."
+	}
+	"BugReport Sent"
+	{
+		"ru"		"{green}Сообщение об ошибке отправлено - спасибо."
+	}
+}
