@@ -266,7 +266,7 @@ public void SendBugReport(int iClient, char[] szText)
 
 	char szMention[128];
 	GetConVarString(g_cvBugReportMention, szMention, sizeof szMention);
-	if (!StrEqual(szMention, ""))    // Checks if mention is disabled
+	if (!StrEqual(szMention, ""))  // Checks if mention is disabled
 	{
 		hook.SetContent(szMention);
 	}
@@ -345,7 +345,7 @@ public void SendCallAdmin(int iClient, char[] szText)
 
 	char szMention[128];
 	GetConVarString(g_cvCallAdminMention, szMention, sizeof szMention);
-	if (!StrEqual(szMention, ""))    // Checks if mention is disabled
+	if (!StrEqual(szMention, ""))  // Checks if mention is disabled
 	{
 		hook.SetContent(szMention);
 	}
