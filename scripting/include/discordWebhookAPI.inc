@@ -983,6 +983,9 @@ methodmap Webhook < JSONObject
 	{
 		HTTPRequest httpRequest = new HTTPRequest(webhook);
 		httpRequest.Post(view_as<JSON>(this), callback, data);
+
+		PrintToServer("\nWebhook %s", webhook);
+
 		return;
 	}
 }
