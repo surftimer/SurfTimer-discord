@@ -135,19 +135,19 @@ public void OnConfigsExecuted()
 public void OnAllPluginsLoaded()
 {
 	g_bIsSurfTimerEnabled = LibraryExists("surftimer");
-	g_bIsChallengeEnabled = LibraryExists("map-challenge");
+	g_bIsChallengeEnabled = LibraryExists("map_challenge");
 }
 
 public void OnLibraryAdded(const char[] name)
 {
 	g_bIsSurfTimerEnabled = StrEqual(name, "surftimer") ? true : g_bIsSurfTimerEnabled;
-	g_bIsChallengeEnabled = StrEqual(name, "map-challenge") ? true : g_bIsChallengeEnabled;
+	g_bIsChallengeEnabled = StrEqual(name, "map_challenge") ? true : g_bIsChallengeEnabled;
 }
 
 public void OnLibraryRemoved(const char[] name)
 {
 	g_bIsSurfTimerEnabled = StrEqual(name, "surftimer") ? false : g_bIsSurfTimerEnabled;
-	g_bIsChallengeEnabled = StrEqual(name, "map-challenge") ? false : g_bIsChallengeEnabled;
+	g_bIsChallengeEnabled = StrEqual(name, "map_challenge") ? false : g_bIsChallengeEnabled;
 }
 
 public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
@@ -168,8 +168,7 @@ public void OnClientConnected(int iClient)
 }
 
 public Action CommandDiscordTest(int client, int args)
-{	
-	/*
+{
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending main record test message.");
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", -1);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
@@ -182,10 +181,8 @@ public Action CommandDiscordTest(int client, int args)
 	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", -1);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} stage record test message.");
 	surftimer_OnNewWRCP(client, 5, "00:00:00", "-00:00:00", 3);
-	*/
-
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}Challenge{green} test message.");
-	mapchallenge_OnNewChallenge(client, "surf_beginner", 0, 420, "Thu Aug 23 14:55:02 2001");
+	mapchallenge_OnNewChallenge(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001");
 	
 	return Plugin_Handled;
 }
@@ -447,7 +444,7 @@ public void surftimer_OnNewWRCP(int client, int style, char[] time, char[] timeD
 		sendDiscordAnnouncement(client, style, time, timeDif, -1, stage);
 }
 
-public void mapchallenge_OnNewChallenge(int client, char szMapName[32], int style, int points, char szFinal_Timestamp[32]){
+public void mapchallenge_OnNewChallenge(int client, char szMapName[32], int style, int points, char szInitial_Timestamp[32], char szFinal_Timestamp[32]){
 	char webhook[1024], webhookName[1024];
 	
 	GetConVarString(g_cvAnnounceChallengeWebhook, webhook, 1024);
@@ -480,11 +477,11 @@ public void mapchallenge_OnNewChallenge(int client, char szMapName[32], int styl
 		case 7: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Free Style");
 	}
 
-	Format(szChallenge_Points, sizeof(szChallenge_Points), "%s", points);
+	Format(szChallenge_Points, sizeof(szChallenge_Points), "%d", points);
 
 	// Format title
 	char szTitle[256];
-	Format(szTitle, sizeof szTitle, "__**New Challenge**__ | **%s**", szMapName);
+	Format(szTitle, sizeof szTitle, "__**New Challenge**__");
 
 	Embed embed = new Embed();
 
@@ -497,9 +494,11 @@ public void mapchallenge_OnNewChallenge(int client, char szMapName[32], int styl
 	embed.AddField(field);
 	field = new EmbedField("Style", szChallenge_Style, true);
 	embed.AddField(field);
-	field = new EmbedField("Points", szChallenge_Points, true);
+	field = new EmbedField("Winner Points", szChallenge_Points, true);
 	embed.AddField(field);
-	field = new EmbedField("Duration", szFinal_Timestamp, true);
+	field = new EmbedField("Started", szInitial_Timestamp, true);
+	embed.AddField(field);
+	field = new EmbedField("Ends", szFinal_Timestamp, true);
 	embed.AddField(field);
 
 	char szUrlMain[1024];
