@@ -171,7 +171,7 @@ public void OnClientConnected(int iClient)
 
 public Action CommandDiscordTest(int client, int args)
 {
-	/*
+	
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending main record test message.");
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", -1);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
@@ -185,7 +185,7 @@ public Action CommandDiscordTest(int client, int args)
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} stage record test message.");
 	surftimer_OnNewWRCP(client, 5, "00:00:00", "-00:00:00", 3);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}Challenge{green} test message.");
-	*/
+	
 	mapchallenge_OnNewChallenge(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001");
 	ArrayList szTop5 = new ArrayList(32);
 	szTop5.PushString("gaben");
