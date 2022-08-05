@@ -1,5 +1,14 @@
 ﻿## Release Notes
 
+## [2.2.0]
+
+### Added
+
+- Added support for MapChallenge plugin.
+- Added MapChallenge announcements (Challenge Started, Challenge Ended).
+- Added 2 new ConVar's for MapChallenge webhook's.
+- Added 2 more styled messages to be printed upon using **sm_ck_discordtest**
+
 ## [2.1.4]
 
 ### Added
