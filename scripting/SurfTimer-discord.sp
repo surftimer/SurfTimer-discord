@@ -55,7 +55,7 @@ char g_szProfileUrl[256];
 
 bool g_bIsSurfTimerEnabled = false;
 bool g_bIsChallengeEnabled = false;
-bool g_bDebugging          = true;
+bool g_bDebugging          = false;
 
 enum WaitingFor
 {
@@ -189,8 +189,8 @@ public Action CommandDiscordTest(int client, int args)
 	mapchallenge_OnNewChallenge(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001");
 	ArrayList szTop5 = new ArrayList(32);
 	szTop5.PushString("gaben");
-	szTop5.PushString("asd");
-	szTop5.PushString("ytu");
+	szTop5.PushString("marcelo");
+	szTop5.PushString("elon");
 	szTop5.PushString("");
 	szTop5.PushString("");
 	mapchallenge_OnChallengeEnd(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001", szTop5, 666);
