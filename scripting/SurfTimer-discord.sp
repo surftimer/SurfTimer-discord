@@ -11,7 +11,7 @@ public Plugin myinfo =
 	name        = "SurfTimer-Discord",
 	author      = "Sarrus",
 	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
-	version     = "2.1.3",
+	version     = "2.2.0",
 	url         = "https://github.com/Sarrus1/SurfTimer-discord"
 };
 
@@ -23,6 +23,8 @@ ConVar g_cvAnnounceBonusWebhook;
 ConVar g_cvAnnounceStyleMainWebhook;
 ConVar g_cvAnnounceStyleStageWebhook;
 ConVar g_cvAnnounceStyleBonusWebhook;
+ConVar g_cvAnnounceChallengeWebhook;
+ConVar g_cvAnnounceChallengeEndWebhook;
 ConVar g_cvReportBugsDiscord;
 ConVar g_cvCallAdminDiscord;
 ConVar g_cvMainUrlRoot;
@@ -52,6 +54,7 @@ char g_szBugType[MAXPLAYERS + 1][32];
 char g_szProfileUrl[256];
 
 bool g_bIsSurfTimerEnabled = false;
+bool g_bIsChallengeEnabled = false;
 bool g_bDebugging          = false;
 
 enum WaitingFor
@@ -90,6 +93,9 @@ public void OnPluginStart()
 	g_cvWebStatsUrl               = CreateConVar("sm_surftimer_discord_webstats_url", "", "Your webstats URL eg. \"https://www.mywebstats.com\" (only specify if using \"sm_surftimer_discord_profile_url_type 1\")");
 	g_cvEnableCallAdmin           = CreateConVar("sm_surftimer_discord_enable_calladmin", "1", "Enable or disable the !calladmin command. 1 to enable, 0 to disable. Requires a plugin restart.", FCVAR_REPLICATED, true, 0.0, true, 1.0);
 	g_cvEnableBugReport           = CreateConVar("sm_surftimer_discord_enable_bug_report", "1", "Enable or disable the !bug command. 1 to enable, 0 to disable. Requires a plugin restart.", FCVAR_REPLICATED, true, 0.0, true, 1.0);
+
+	g_cvAnnounceChallengeWebhook  = CreateConVar("sm_mapchallenge_discord_announce_challenge_webhook", "", "The webhook to the discord channel where you want challenge messages to be sent.", FCVAR_PROTECTED);
+	g_cvAnnounceChallengeEndWebhook = CreateConVar("sm_mapchallenge_discord_announce_challenge_end_webhook", "", "The webhook to the discord channel where you want challenge end messages to be sent.", FCVAR_PROTECTED);
 
 	g_cvHostname = FindConVar("hostname");
 	g_cvHostname.GetString(g_szHostname, sizeof g_szHostname);
@@ -131,16 +137,19 @@ public void OnConfigsExecuted()
 public void OnAllPluginsLoaded()
 {
 	g_bIsSurfTimerEnabled = LibraryExists("surftimer");
+	g_bIsChallengeEnabled = LibraryExists("map_challenge");
 }
 
 public void OnLibraryAdded(const char[] name)
 {
 	g_bIsSurfTimerEnabled = StrEqual(name, "surftimer") ? true : g_bIsSurfTimerEnabled;
+	g_bIsChallengeEnabled = StrEqual(name, "map_challenge") ? true : g_bIsChallengeEnabled;
 }
 
 public void OnLibraryRemoved(const char[] name)
 {
 	g_bIsSurfTimerEnabled = StrEqual(name, "surftimer") ? false : g_bIsSurfTimerEnabled;
+	g_bIsChallengeEnabled = StrEqual(name, "map_challenge") ? false : g_bIsChallengeEnabled;
 }
 
 public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
@@ -162,6 +171,7 @@ public void OnClientConnected(int iClient)
 
 public Action CommandDiscordTest(int client, int args)
 {
+	
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending main record test message.");
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", -1);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
@@ -174,6 +184,17 @@ public Action CommandDiscordTest(int client, int args)
 	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", -1);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} stage record test message.");
 	surftimer_OnNewWRCP(client, 5, "00:00:00", "-00:00:00", 3);
+	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}Challenge{green} test message.");
+	
+	mapchallenge_OnNewChallenge(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001");
+	ArrayList szTop5 = new ArrayList(32);
+	szTop5.PushString("gaben");
+	szTop5.PushString("marcelo");
+	szTop5.PushString("elon");
+	szTop5.PushString("");
+	szTop5.PushString("");
+	mapchallenge_OnChallengeEnd(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001", szTop5, 666);
+	
 	return Plugin_Handled;
 }
 
@@ -432,6 +453,223 @@ public void surftimer_OnNewWRCP(int client, int style, char[] time, char[] timeD
 		GetProfilePictureURL(client, style, time, timeDif, -1, stage);
 	else
 		sendDiscordAnnouncement(client, style, time, timeDif, -1, stage);
+}
+
+public void mapchallenge_OnNewChallenge(int client, char szMapName[32], int style, int points, char szInitial_Timestamp[32], char szFinal_Timestamp[32]){
+	char webhook[1024], webhookName[1024];
+	
+	GetConVarString(g_cvAnnounceChallengeWebhook, webhook, 1024);
+	GetConVarString(g_cvBotUsername, webhookName, 1024);
+	if (StrEqual(webhook, ""))
+	{
+		PrintToServer("[SurfTimer-Discord] No webhook specified, aborting.");
+		return;
+	}
+
+	// Send Discord Announcement
+	char szMention[128];
+	GetConVarString(g_cvAnnounceMention, szMention, 128);
+	Webhook hook = new Webhook(szMention);
+
+	hook.SetUsername(webhookName);
+
+	char szChallenge_Style[32], szChallenge_Points[32];
+
+	Format(szChallenge_Style, sizeof(szChallenge_Style), "%s", "");
+	switch (style)
+	{
+		case 0: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Normal");
+		case 1: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Sideways");
+		case 2: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Half Sideways");
+		case 3: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Backwards");
+		case 4: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Low Gravity");
+		case 5: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Slow Motion");
+		case 6: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Fast Forward");
+		case 7: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Free Style");
+	}
+
+	Format(szChallenge_Points, sizeof(szChallenge_Points), "%d", points);
+
+	// Format title
+	char szTitle[256];
+	Format(szTitle, sizeof szTitle, "__**New Challenge**__");
+
+	Embed embed = new Embed();
+
+	char color[16];
+	GetConVarString(g_cvMainEmbedColor, color, sizeof color);
+	embed.SetColor(StringToInt(color, 16));
+
+	embed.SetTitle(szTitle);
+	EmbedField field = new EmbedField("Challenge Map", szMapName, true);
+	embed.AddField(field);
+	field = new EmbedField("Style", szChallenge_Style, true);
+	embed.AddField(field);
+	field = new EmbedField("Winner Points", szChallenge_Points, true);
+	embed.AddField(field);
+	field = new EmbedField("Started", szInitial_Timestamp, true);
+	embed.AddField(field);
+	field = new EmbedField("Ends", szFinal_Timestamp, true);
+	embed.AddField(field);
+
+	char szUrlMain[1024];
+	GetConVarString(g_cvMainUrlRoot, szUrlMain, 1024);
+	StrCat(szUrlMain, sizeof szUrlMain, szMapName);
+	StrCat(szUrlMain, sizeof szUrlMain, ".jpg");
+	EmbedImage image = new EmbedImage(szUrlMain);
+	embed.SetImage(image);
+
+	// Add Footer
+	EmbedFooter footer = new EmbedFooter();
+	char buffer[1000];
+	Format(buffer, sizeof buffer, "Server: %s", g_szHostname);
+	footer.SetText(buffer);
+
+	char szFooterUrl[1024];
+	GetConVarString(g_cvFooterUrl, szFooterUrl, sizeof szFooterUrl);
+	if (!StrEqual(szFooterUrl, ""))
+	{
+		footer.SetIconURL(szFooterUrl);
+		embed.SetFooter(footer);
+	}
+
+	hook.AddEmbed(embed);
+	hook.Execute(webhook, OnWebHookExecuted, client);
+	if (g_bDebugging)
+	{
+		char szDebugOutput[10000];
+		hook.ToString(szDebugOutput, sizeof szDebugOutput);
+		PrintToServer(szDebugOutput);
+	}
+	delete hook;
+}
+
+public void mapchallenge_OnChallengeEnd(int client, char szMapName[32], int style, int points, char szInitial_Timestamp[32], char szFinal_Timestamp[32], ArrayList szChallengeTop5, int totalParticipants){
+	char webhook[1024], webhookName[1024];
+	
+	GetConVarString(g_cvAnnounceChallengeEndWebhook, webhook, 1024);
+	GetConVarString(g_cvBotUsername, webhookName, 1024);
+	if (StrEqual(webhook, ""))
+	{
+		PrintToServer("[SurfTimer-Discord] No webhook specified, aborting.");
+		return;
+	}
+
+	// Send Discord Announcement
+	char szMention[128];
+	GetConVarString(g_cvAnnounceMention, szMention, 128);
+	Webhook hook = new Webhook(szMention);
+
+	hook.SetUsername(webhookName);
+
+	char szChallenge_Style[32], szChallenge_Points[32], szChallengeParticipants[32];
+
+	Format(szChallenge_Style, sizeof(szChallenge_Style), "%s", "");
+	switch (style)
+	{
+		case 0: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Normal");
+		case 1: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Sideways");
+		case 2: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Half Sideways");
+		case 3: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Backwards");
+		case 4: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Low Gravity");
+		case 5: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Slow Motion");
+		case 6: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Fast Forward");
+		case 7: strcopy(szChallenge_Style, sizeof szChallenge_Style, "Free Style");
+	}
+	Format(szChallenge_Style, sizeof(szChallenge_Style), "%s\n", szChallenge_Style);
+
+	Format(szChallenge_Points, sizeof(szChallenge_Points), "%d", points);
+
+	// Format title
+	char szTitle[256];
+	Format(szTitle, sizeof szTitle, "__**Challenge Ended**__");
+
+	Embed embed = new Embed();
+
+	char color[16];
+	GetConVarString(g_cvMainEmbedColor, color, sizeof color);
+	embed.SetColor(StringToInt(color, 16));
+	embed.SetTitle(szTitle);
+
+	EmbedField field = new EmbedField("Challenge Map", szMapName, true);
+	embed.AddField(field);
+
+	field = new EmbedField("Style", szChallenge_Style, true);
+	embed.AddField(field);
+
+	field = new EmbedField("‎", "‎", true);
+	embed.AddField(field);
+
+	field = new EmbedField("Started", szInitial_Timestamp, true);
+	embed.AddField(field);
+
+	field = new EmbedField("Ends", szFinal_Timestamp, true);
+	embed.AddField(field);
+
+	field = new EmbedField("‎", "‎", true);
+	embed.AddField(field);
+
+	Format(szChallengeParticipants, sizeof(szChallengeParticipants), "%d", totalParticipants);
+	field = new EmbedField("Participants", szChallengeParticipants, true);
+	embed.AddField(field);
+
+	Format(szChallenge_Points, sizeof(szChallenge_Points), "%d", points);
+	field = new EmbedField("Winner Points", szChallenge_Points, true);
+	embed.AddField(field);
+
+	char sztemp[32];
+	char szTop5_finalstring[256];
+	for(int i = 0; i < szChallengeTop5.Length; i++)
+	{
+		szChallengeTop5.GetString(i, sztemp, sizeof sztemp);
+		if(strcmp(sztemp, "", false) != 0){
+			if(i == 0)
+				Format(szTop5_finalstring, sizeof szTop5_finalstring, "%i. %s", (i+1), sztemp);
+			else
+				Format(szTop5_finalstring, sizeof szTop5_finalstring, "%s\n%i. %s", szTop5_finalstring, (i+1), sztemp);
+		}
+		else{
+			if(i == 0)
+				Format(szTop5_finalstring, sizeof szTop5_finalstring, "%i. N/A", (i+1));
+			else
+				Format(szTop5_finalstring, sizeof szTop5_finalstring, "%s\n%i. N/A", szTop5_finalstring, (i+1));
+		}
+	}
+	Format(szTop5_finalstring, sizeof szTop5_finalstring, "```fix\n%s\n```", szTop5_finalstring);
+
+	field = new EmbedField("TOP 5", szTop5_finalstring, false);
+	embed.AddField(field);
+
+	char szUrlMain[1024];
+	GetConVarString(g_cvMainUrlRoot, szUrlMain, 1024);
+	StrCat(szUrlMain, sizeof szUrlMain, szMapName);
+	StrCat(szUrlMain, sizeof szUrlMain, ".jpg");
+	EmbedImage image = new EmbedImage(szUrlMain);
+	embed.SetImage(image);
+
+	// Add Footer
+	EmbedFooter footer = new EmbedFooter();
+	char buffer[1000];
+	Format(buffer, sizeof buffer, "Server: %s", g_szHostname);
+	footer.SetText(buffer);
+
+	char szFooterUrl[1024];
+	GetConVarString(g_cvFooterUrl, szFooterUrl, sizeof szFooterUrl);
+	if (!StrEqual(szFooterUrl, ""))
+	{
+		footer.SetIconURL(szFooterUrl);
+		embed.SetFooter(footer);
+	}
+
+	hook.AddEmbed(embed);
+	hook.Execute(webhook, OnWebHookExecuted , client);
+	if (g_bDebugging)
+	{
+		char szDebugOutput[10000];
+		hook.ToString(szDebugOutput, sizeof szDebugOutput);
+		PrintToServer(szDebugOutput);
+	}
+	delete hook;
 }
 
 stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] szTimeDif, int bonusGroup, int stage)
