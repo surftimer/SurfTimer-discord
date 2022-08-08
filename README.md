@@ -12,7 +12,7 @@ The messages will look like this:
 ## Requirements
 
 - Sourcemod and Metamod
-- [SurfTimer-Official (main project or Sad's fork)](https://github.com/surftimer/Surftimer-Official)
+- [SurfTimer-Official](https://github.com/surftimer/Surftimer-Official)
 - [SM-RipExt](https://github.com/ErikMinekus/sm-ripext/releases/latest)
 
 ## Note:
