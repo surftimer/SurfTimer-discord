@@ -177,13 +177,13 @@ public Action CommandDiscordTest(int client, int args)
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", 1);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending stage record test message.");
-	surftimer_OnNewWRCP(client, 0, "00:00:00", "-00:00:00", 3);
+	surftimer_OnNewWRCP(client, 0, "00:00:00", "-00:00:00", 3, 0.0);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} bonus record test message.");
 	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", 1);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} main record test message.");
 	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", -1);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} stage record test message.");
-	surftimer_OnNewWRCP(client, 5, "00:00:00", "-00:00:00", 3);
+	surftimer_OnNewWRCP(client, 5, "00:00:00", "-00:00:00", 3, 0.0);
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}Challenge{green} test message.");
 	
 	mapchallenge_OnNewChallenge(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001");
@@ -447,7 +447,7 @@ public void surftimer_OnNewRecord(int client, int style, char[] time, char[] tim
 		sendDiscordAnnouncement(client, style, time, timeDif, bonusGroup, -1);
 }
 
-public void surftimer_OnNewWRCP(int client, int style, char[] time, char[] timeDif, int stage)
+public void surftimer_OnNewWRCP(int client, int style, char[] time, char[] timeDif, int stage, float fRunTime)
 {
 	if (strncmp(g_szApiKey, "", 1) != 0)
 		GetProfilePictureURL(client, style, time, timeDif, -1, stage);
