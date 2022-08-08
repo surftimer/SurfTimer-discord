@@ -1,5 +1,17 @@
 ﻿## Release Notes
 
+## [2.3.0]
+
+### Added
+
+- Added Runtime & RuntimeDifference to Final TOP5 Message
+- Fixed new styled messages to be printed upon using **sm_ck_discordtest**
+
+### Fixed
+
+- Fixed wrong include file name of MapChallenge plugin.
+- Fixed missing return value.
+
 ## [2.2.0]
 
 ### Added
