@@ -5,7 +5,7 @@
 ### Added
 
 - Added Runtime & RuntimeDifference to Final TOP5 Message
-- Fixed new styled messages to be printed upon using **sm_ck_discordtest**
+- Changed styled messages to be printed upon using **sm_ck_discordtest**
 
 ### Fixed
 
