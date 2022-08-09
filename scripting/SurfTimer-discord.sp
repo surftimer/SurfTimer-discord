@@ -3,6 +3,7 @@
 #include <ripext>
 #include <sourcemod>
 #include <surftimer>
+#include <mapchallenge>
 #pragma newdecls required
 #pragma semicolon 1
 
@@ -62,6 +63,12 @@ enum WaitingFor
 	None,
 	Calladmin,
 	BugReport
+}
+
+enum struct TOP5_entry{
+	char szPlayerName[MAX_NAME_LENGTH];
+	char szRuntimeFormatted[32];
+	char szRuntimeDifference[32];
 }
 
 WaitingFor g_iWaitingFor[MAXPLAYERS + 1];
@@ -187,12 +194,26 @@ public Action CommandDiscordTest(int client, int args)
 	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}Challenge{green} test message.");
 	
 	mapchallenge_OnNewChallenge(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001");
-	ArrayList szTop5 = new ArrayList(32);
-	szTop5.PushString("gaben");
-	szTop5.PushString("marcelo");
-	szTop5.PushString("elon");
-	szTop5.PushString("");
-	szTop5.PushString("");
+
+	ArrayList szTop5 = new ArrayList(sizeof TOP5_entry);
+	TOP5_entry temp;
+
+	temp.szPlayerName = "gaben";
+	temp.szRuntimeFormatted = "00:10.000";
+	temp.szRuntimeDifference = "00:00:000";
+	szTop5.PushArray(temp, sizeof temp);
+
+	temp.szPlayerName = "marcelo";
+	temp.szRuntimeFormatted = "00:05.000";
+	temp.szRuntimeDifference = "00:05:000";
+	szTop5.PushArray(temp, sizeof temp);
+
+	temp.szPlayerName = "";
+	temp.szRuntimeFormatted = "";
+	temp.szRuntimeDifference = "";
+	for(int i = 0; i < 4; i++)
+		szTop5.PushArray(temp, sizeof temp);
+
 	mapchallenge_OnChallengeEnd(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001", szTop5, 666);
 	
 	return Plugin_Handled;
@@ -232,6 +253,8 @@ public int ReportBugHandler(Menu menu, MenuAction action, int param1, int param2
 	}
 	else if (action == MenuAction_End)
 		delete menu;
+	
+	return 0;
 }
 
 public Action SayHook(int client, const char[] command, int args)
@@ -617,16 +640,16 @@ public void mapchallenge_OnChallengeEnd(int client, char szMapName[32], int styl
 	field = new EmbedField("Winner Points", szChallenge_Points, true);
 	embed.AddField(field);
 
-	char sztemp[32];
 	char szTop5_finalstring[256];
-	for(int i = 0; i < szChallengeTop5.Length; i++)
+	TOP5_entry temp;
+	for(int i = 0; i < 5; i++)
 	{
-		szChallengeTop5.GetString(i, sztemp, sizeof sztemp);
-		if(strcmp(sztemp, "", false) != 0){
+		szChallengeTop5.GetArray(i, temp, sizeof temp);
+		if(strcmp(temp.szPlayerName, "", false) != 0){
 			if(i == 0)
-				Format(szTop5_finalstring, sizeof szTop5_finalstring, "%i. %s", (i+1), sztemp);
+				Format(szTop5_finalstring, sizeof szTop5_finalstring, "%i. %s | (+%s) | %s", (i+1), temp.szRuntimeFormatted, temp.szRuntimeDifference, temp.szPlayerName);
 			else
-				Format(szTop5_finalstring, sizeof szTop5_finalstring, "%s\n%i. %s", szTop5_finalstring, (i+1), sztemp);
+				Format(szTop5_finalstring, sizeof szTop5_finalstring, "%s\n%i. %s | (+%s) | %s", szTop5_finalstring, (i+1), temp.szRuntimeFormatted, temp.szRuntimeDifference, temp.szPlayerName);
 		}
 		else{
 			if(i == 0)
