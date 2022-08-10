@@ -1,5 +1,11 @@
 ﻿## Release Notes
 
+## [2.4.1]
+
+### Added
+
+- Make MapChallenge not a required plugin.
+
 ## [2.4.0]
 
 ### Added

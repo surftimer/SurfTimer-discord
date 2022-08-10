@@ -3,6 +3,7 @@
 #include <ripext>
 #include <sourcemod>
 #include <surftimer>
+#undef REQUIRE_PLUGIN
 #include <mapchallenge>
 #pragma newdecls required
 #pragma semicolon 1

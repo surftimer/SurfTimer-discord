@@ -1,3 +1,8 @@
+#if defined _mapchallenge_included
+ #endinput
+#endif
+#define __mapchallenge_included
+
 /**
  * Called when a new challenge is created
  *
