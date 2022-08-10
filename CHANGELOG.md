@@ -1,5 +1,11 @@
 ﻿## Release Notes
 
+## [2.4.0]
+
+### Added
+
+- Added ConVar for Mention Role option with MapChallenges.
+
 ## [2.3.0]
 
 ### Added
