@@ -2,7 +2,7 @@
 
 ## [2.4.1]
 
-### Added
+### Fixed
 
 - Make MapChallenge not a required plugin.
 
