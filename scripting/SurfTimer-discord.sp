@@ -26,6 +26,7 @@ ConVar g_cvAnnounceStyleStageWebhook;
 ConVar g_cvAnnounceStyleBonusWebhook;
 ConVar g_cvAnnounceChallengeWebhook;
 ConVar g_cvAnnounceChallengeEndWebhook;
+ConVar g_cvAnnounceChallengeMention;
 ConVar g_cvReportBugsDiscord;
 ConVar g_cvCallAdminDiscord;
 ConVar g_cvMainUrlRoot;
@@ -103,6 +104,7 @@ public void OnPluginStart()
 
 	g_cvAnnounceChallengeWebhook  = CreateConVar("sm_mapchallenge_discord_announce_challenge_webhook", "", "The webhook to the discord channel where you want challenge messages to be sent.", FCVAR_PROTECTED);
 	g_cvAnnounceChallengeEndWebhook = CreateConVar("sm_mapchallenge_discord_announce_challenge_end_webhook", "", "The webhook to the discord channel where you want challenge end messages to be sent.", FCVAR_PROTECTED);
+	g_cvAnnounceChallengeMention = CreateConVar("sm_surftimer_discord_challenge_mention", "@here", "Optional discord mention to ping users when a new challenge has been created or has ended.");
 
 	g_cvHostname = FindConVar("hostname");
 	g_cvHostname.GetString(g_szHostname, sizeof g_szHostname);
@@ -491,7 +493,7 @@ public void mapchallenge_OnNewChallenge(int client, char szMapName[32], int styl
 
 	// Send Discord Announcement
 	char szMention[128];
-	GetConVarString(g_cvAnnounceMention, szMention, 128);
+	GetConVarString(g_cvAnnounceChallengeMention, szMention, 128);
 	Webhook hook = new Webhook(szMention);
 
 	hook.SetUsername(webhookName);
@@ -580,7 +582,7 @@ public void mapchallenge_OnChallengeEnd(int client, char szMapName[32], int styl
 
 	// Send Discord Announcement
 	char szMention[128];
-	GetConVarString(g_cvAnnounceMention, szMention, 128);
+	GetConVarString(g_cvAnnounceChallengeMention, szMention, 128);
 	Webhook hook = new Webhook(szMention);
 
 	hook.SetUsername(webhookName);
