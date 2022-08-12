@@ -1,5 +1,11 @@
 ﻿## Release Notes
 
+## [2.5.0]
+
+### Added
+
+- Added Timezone to Timestamps.
+
 ## [2.4.1]
 
 ### Fixed
