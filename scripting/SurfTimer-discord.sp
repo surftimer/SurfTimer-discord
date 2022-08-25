@@ -13,7 +13,7 @@ public Plugin myinfo =
 	name        = "SurfTimer-Discord",
 	author      = "Sarrus",
 	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
-	version     = "2.4.1",
+	version     = "2.5.0",
 	url         = "https://github.com/Sarrus1/SurfTimer-discord"
 };
 
@@ -626,10 +626,14 @@ public void mapchallenge_OnChallengeEnd(int client, char szMapName[32], int styl
 	field = new EmbedField("‎", "‎", true);
 	embed.AddField(field);
 
-	field = new EmbedField("Started", szInitial_Timestamp, true);
+	char szInitital_Timestamp_withTimezone[64];
+	Format(szInitital_Timestamp_withTimezone, sizeof szInitital_Timestamp_withTimezone, "(UTC) %s", szInitial_Timestamp);
+	field = new EmbedField("Started", szInitital_Timestamp_withTimezone, true);
 	embed.AddField(field);
 
-	field = new EmbedField("Ends", szFinal_Timestamp, true);
+	char szFinal_Timestamp_withTimezone[64];
+	Format(szFinal_Timestamp_withTimezone, sizeof szFinal_Timestamp_withTimezone, "(UTC) %s", szFinal_Timestamp);
+	field = new EmbedField("Ends", szFinal_Timestamp_withTimezone, true);
 	embed.AddField(field);
 
 	field = new EmbedField("‎", "‎", true);
@@ -662,6 +666,8 @@ public void mapchallenge_OnChallengeEnd(int client, char szMapName[32], int styl
 		}
 	}
 	Format(szTop5_finalstring, sizeof szTop5_finalstring, "```fix\n%s\n```", szTop5_finalstring);
+
+	delete szChallengeTop5;
 
 	field = new EmbedField("TOP 5", szTop5_finalstring, false);
 	embed.AddField(field);

@@ -1,5 +1,15 @@
 ﻿## Release Notes
 
+## [2.5.0]
+
+### Added
+
+- Added Timezone to Timestamps.
+
+### Fixed
+
+- Missing ArrayList Handle Closing.
+
 ## [2.4.1]
 
 ### Fixed
