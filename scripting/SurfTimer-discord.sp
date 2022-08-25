@@ -667,6 +667,8 @@ public void mapchallenge_OnChallengeEnd(int client, char szMapName[32], int styl
 	}
 	Format(szTop5_finalstring, sizeof szTop5_finalstring, "```fix\n%s\n```", szTop5_finalstring);
 
+	delete szChallengeTop5;
+
 	field = new EmbedField("TOP 5", szTop5_finalstring, false);
 	embed.AddField(field);
 

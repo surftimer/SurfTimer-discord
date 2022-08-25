@@ -6,6 +6,10 @@
 
 - Added Timezone to Timestamps.
 
+### Fixed
+
+- Missing ArrayList Handle Closing.
+
 ## [2.4.1]
 
 ### Fixed
