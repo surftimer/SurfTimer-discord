@@ -140,7 +140,7 @@ public void OnConfigsExecuted()
 	}
 	else
 	{
-		strcopy(g_szProfileUrl, sizeof g_szProfileUrl, "https://steamcommunity.com/profiles");
+		strcopy(g_szProfileUrl, sizeof g_szProfileUrl, "https://steamcommunity.com/profiles/");
 	}
 }
 
@@ -338,12 +338,9 @@ public void SendBugReport(int iClient, char[] szText)
 	char szPlayerID[256], szSteamId[64], szName[MAX_NAME_LENGTH];
 	GetClientName(iClient, szName, sizeof szName);
 
-	if (g_cvProfileUrlType.BoolValue)
-		GetClientAuthId(iClient, AuthId_Steam2, szSteamId, sizeof szSteamId);
-	else
-		GetClientAuthId(iClient, AuthId_SteamID64, szSteamId, sizeof szSteamId);
+	GetClientAuthId(iClient, AuthId_SteamID64, szSteamId, sizeof szSteamId);
 
-	Format(szPlayerID, sizeof szPlayerID, "[%s](%s/%s)", szName, g_szProfileUrl, szSteamId);
+	Format(szPlayerID, sizeof szPlayerID, "[%s](%s%s)", szName, g_szProfileUrl, szSteamId);
 
 	EmbedField field = new EmbedField("Player", szPlayerID, true);
 	embed.AddField(field);
@@ -415,16 +412,10 @@ public void SendCallAdmin(int iClient, char[] szText)
 	// Format Message
 	char szPlayerID[256], szSteamId[64], szName[MAX_NAME_LENGTH];
 	GetClientName(iClient, szName, sizeof szName);
-	if (g_cvProfileUrlType.BoolValue)
-	{
-		GetClientAuthId(iClient, AuthId_Steam2, szSteamId, sizeof szSteamId);
-	}
-	else
-	{
-		GetClientAuthId(iClient, AuthId_SteamID64, szSteamId, sizeof szSteamId);
-	}
+	
+	GetClientAuthId(iClient, AuthId_SteamID64, szSteamId, sizeof szSteamId);
 
-	Format(szPlayerID, sizeof szPlayerID, "[%s](%s/%s)", szName, g_szProfileUrl, szSteamId);
+	Format(szPlayerID, sizeof szPlayerID, "[%s](%s%s)", szName, g_szProfileUrl, szSteamId);
 
 	EmbedField field = new EmbedField("Player", szPlayerID, false);
 	embed.AddField(field);
@@ -733,16 +724,9 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 	char szPlayerID[256], szSteamId[64], szName[MAX_NAME_LENGTH];
 	GetClientName(client, szName, sizeof szName);
 
-	if (g_cvProfileUrlType.BoolValue)
-	{
-		GetClientAuthId(client, AuthId_Steam2, szSteamId, sizeof szSteamId);
-	}
-	else
-	{
-		GetClientAuthId(client, AuthId_SteamID64, szSteamId, sizeof szSteamId);
-	}
-
-	Format(szPlayerID, sizeof szPlayerID, "[%s](%s/%s)", szName, g_szProfileUrl, szSteamId);
+	GetClientAuthId(client, AuthId_SteamID64, szSteamId, sizeof szSteamId);
+	
+	Format(szPlayerID, sizeof szPlayerID, "[%s](%s%s)", szName, g_szProfileUrl, szSteamId);
 
 	// Test which style to use
 	if (!g_cvKSFStyle.BoolValue)
