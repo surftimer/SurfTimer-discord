@@ -182,19 +182,19 @@ public void OnClientConnected(int iClient)
 public Action CommandDiscordTest(int client, int args)
 {
 	
-	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending main record test message.");
+	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending main record test message.");
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", -1);
-	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
+	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", 1);
-	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending stage record test message.");
+	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending stage record test message.");
 	surftimer_OnNewWRCP(client, 0, "00:00:00", "-00:00:00", 3, 0.0);
-	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} bonus record test message.");
+	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} bonus record test message.");
 	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", 1);
-	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} main record test message.");
+	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} main record test message.");
 	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", -1);
-	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} stage record test message.");
+	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} stage record test message.");
 	surftimer_OnNewWRCP(client, 5, "00:00:00", "-00:00:00", 3, 0.0);
-	CPrintToChat(client, "{blue}[SurfTimer-Discord] {green}Sending {red}Challenge{green} test message.");
+	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}Challenge{green} test message.");
 	
 	mapchallenge_OnNewChallenge(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001");
 
