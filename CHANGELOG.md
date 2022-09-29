@@ -1,5 +1,11 @@
 ﻿## Release Notes
 
+## [2.5.1]
+
+### Fixed
+
+- Fixed an error when running the test commands from console.
+
 ## [2.5.0]
 
 ### Added
