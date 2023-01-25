@@ -13,7 +13,7 @@ public Plugin myinfo =
 	name        = "SurfTimer-Discord",
 	author      = "Sarrus",
 	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
-	version     = "2.5.2",
+	version     = "2.5.3",
 	url         = "https://github.com/Sarrus1/SurfTimer-discord"
 };
 
@@ -141,6 +141,26 @@ public void OnConfigsExecuted()
 	else
 	{
 		strcopy(g_szProfileUrl, sizeof g_szProfileUrl, "https://steamcommunity.com/profiles");
+	}
+
+	checkIfValidName();
+}
+
+void checkIfValidName()
+{
+	char szWebhookName[64];
+	GetConVarString(g_cvBotUsername, szWebhookName, sizeof szWebhookName);
+	char szForbiddenSubStrings[5][32] = {"@", "#", ":", "```", "discord"};
+	char szForbiddenStrings[2][32] = {"everyone", "here"};
+	for(int i; i<sizeof(szForbiddenStrings); i++){
+		if (StrEqual(szForbiddenStrings[i], szWebhookName)){
+			SetFailState("\"%s\" is not allowed in a webhook name.");
+		}
+	}
+	for(int i; i<sizeof(szForbiddenSubStrings); i++){
+		if (StrContains(szWebhookName, szForbiddenSubStrings[i])){
+			SetFailState("Webhook name contains an invalid substring: %s", szForbiddenSubStrings[i]);
+		}
 	}
 }
 

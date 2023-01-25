@@ -43,6 +43,7 @@ The stage record feature will only work with the version `1.0.5` or above of the
 - You can modify the phrases in addons/sourcemod/translations/SurfTimer-discord.phrases.txt.
 - Once the plugin has been loaded, you can modify the cvars in cfg/sourcemod/SurfTimer-discord.cfg.
 - To use Discord mentions, follow [this tutorial](https://discordhelp.net/role-id) to get the role's ID and use `<@&role_id>` in the .cfg file. You can use `@here` and `@everyone` normally.
+- **WARNING** Discord no longer allows "everyone" and "here" as webhook names, nor the following substrings: "@", "#", ":", "```", "discord".
 
 ## Usage
 
