@@ -1,5 +1,11 @@
 ﻿## Release Notes
 
+## [2.5.2]
+
+### Fixed
+
+- Fixed an incorrect `sizeof` statement.
+
 ## [2.5.1]
 
 ### Fixed

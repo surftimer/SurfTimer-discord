@@ -13,7 +13,7 @@ public Plugin myinfo =
 	name        = "SurfTimer-Discord",
 	author      = "Sarrus",
 	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
-	version     = "2.5.1",
+	version     = "2.5.2",
 	url         = "https://github.com/Sarrus1/SurfTimer-discord"
 };
 
@@ -319,7 +319,7 @@ public void SendBugReport(int iClient, char[] szText)
 	}
 
 	char szBugTrackerName[64];
-	GetConVarString(g_cvBotUsername, szBugTrackerName, sizeof g_cvBotUsername);
+	GetConVarString(g_cvBotUsername, szBugTrackerName, sizeof szBugTrackerName);
 
 	hook.SetUsername(szBugTrackerName);
 
