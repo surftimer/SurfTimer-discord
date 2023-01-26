@@ -154,12 +154,12 @@ void checkIfValidName()
 	char szForbiddenStrings[2][32] = {"everyone", "here"};
 	for(int i; i<sizeof(szForbiddenStrings); i++){
 		if (StrEqual(szForbiddenStrings[i], szWebhookName)){
-			SetFailState("\"%s\" is not allowed in a webhook name.");
+			SetFailState("\"%s\" is not allowed in a webhook name. (%s)", szForbiddenStrings[i], szWebhookName);
 		}
 	}
 	for(int i; i<sizeof(szForbiddenSubStrings); i++){
-		if (StrContains(szWebhookName, szForbiddenSubStrings[i])){
-			SetFailState("Webhook name contains an invalid substring: %s", szForbiddenSubStrings[i]);
+		if (StrContains(szWebhookName, szForbiddenSubStrings[i]) != -1){
+			SetFailState("Webhook name contains an invalid substring: %s (%s)", szForbiddenSubStrings[i], szWebhookName);
 		}
 	}
 }
