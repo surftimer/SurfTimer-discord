@@ -1,5 +1,11 @@
 ﻿## Release Notes
 
+## [2.5.4]
+
+### Fixed
+
+- Fixed invalid webhook name checks.
+
 ## [2.5.3]
 
 ### Added
