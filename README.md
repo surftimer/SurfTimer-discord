@@ -5,12 +5,12 @@
     </strong>
   </p>
   <p style="margin-bottom: 0.5ex;">
-    <img src="https://img.shields.io/github/downloads/Sarrus1/SurfTimer-discord/total?style=flat-square"/>
-    <img src="https://img.shields.io/github/last-commit/Sarrus1/SurfTimer-discord?style=flat-square"/>
-    <img src="https://img.shields.io/github/issues/Sarrus1/SurfTimer-discord?style=flat-square"/>
-    <img src="https://img.shields.io/github/issues-closed/Sarrus1/SurfTimer-discord?style=flat-square"/>
-    <img src="https://img.shields.io/github/repo-size/Sarrus1/SurfTimer-discord?style=flat-square"/>
-    <img src="https://img.shields.io/github/workflow/status/Sarrus1/SurfTimer-discord/Compile%20with%20SourceMod?style=flat-square"/>
+    <img src="https://img.shields.io/github/downloads/Sarrus1/SurfTimer-discord/total"/>
+    <img src="https://img.shields.io/github/last-commit/Sarrus1/SurfTimer-discord"/>
+    <img src="https://img.shields.io/github/issues/Sarrus1/SurfTimer-discord"/>
+    <img src="https://img.shields.io/github/issues-closed/Sarrus1/SurfTimer-discord"/>
+    <img src="https://img.shields.io/github/repo-size/Sarrus1/SurfTimer-discord"/>
+    <img src="https://img.shields.io/github/actions/workflow/status/Sarrus1/SurfTimer-discord/master.yml?branch=master"/>
 
   </p>
 </div>
