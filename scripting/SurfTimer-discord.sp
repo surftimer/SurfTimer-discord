@@ -13,7 +13,7 @@ public Plugin myinfo =
 	name        = "SurfTimer-Discord",
 	author      = "Sarrus",
 	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
-	version     = "2.5.3",
+	version     = "2.5.4",
 	url         = "https://github.com/Sarrus1/SurfTimer-discord"
 };
 
@@ -154,7 +154,7 @@ void checkIfValidName()
 	char szForbiddenStrings[2][32] = {"everyone", "here"};
 	for(int i; i<sizeof(szForbiddenStrings); i++){
 		if (StrEqual(szForbiddenStrings[i], szWebhookName)){
-			SetFailState("\"%s\" is not allowed in a webhook name. (%s)", szForbiddenStrings[i], szWebhookName);
+			SetFailState("Discord does not allow \"%s\" as a Webhook name.", szForbiddenStrings[i]);
 		}
 	}
 	for(int i; i<sizeof(szForbiddenSubStrings); i++){
