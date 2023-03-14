@@ -1,5 +1,11 @@
 ﻿## Release Notes
 
+## [2.5.5]
+
+### Fixed
+
+- Fixed test command throwing an error when called from the server's console.
+
 ## [2.5.4]
 
 ### Fixed

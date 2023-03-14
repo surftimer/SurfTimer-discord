@@ -13,7 +13,7 @@ public Plugin myinfo =
 	name        = "SurfTimer-Discord",
 	author      = "Sarrus",
 	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
-	version     = "2.5.4",
+	version     = "2.5.5",
 	url         = "https://github.com/Sarrus1/SurfTimer-discord"
 };
 
