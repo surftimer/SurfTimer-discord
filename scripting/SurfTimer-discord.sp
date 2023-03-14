@@ -201,7 +201,11 @@ public void OnClientConnected(int iClient)
 
 public Action CommandDiscordTest(int client, int args)
 {
-	
+	if (client == 0)
+  {
+    CReplyToCommand(0, "This command is only available in game.");
+    return Plugin_Handled;
+  }
 	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending main record test message.");
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", -1);
 	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
