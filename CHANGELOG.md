@@ -1,5 +1,12 @@
 ﻿## Release Notes
 
+
+## [2.5.6]
+
+### Added
+
+- Added better debugging.
+
 ## [2.5.5]
 
 ### Fixed
