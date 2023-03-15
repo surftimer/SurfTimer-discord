@@ -58,7 +58,6 @@ char g_szProfileUrl[256];
 
 bool g_bIsSurfTimerEnabled = false;
 bool g_bIsChallengeEnabled = false;
-bool g_bDebugging          = false;
 
 enum WaitingFor
 {
@@ -390,12 +389,11 @@ public void SendBugReport(int iClient, char[] szText)
 
 	hook.AddEmbed(embed);
 	hook.Execute(webhook, OnWebHookExecuted, iClient);
-	if (g_bDebugging)
-	{
+  #if defined DEBUG
 		char szDebugOutput[10000];
 		hook.ToString(szDebugOutput, sizeof szDebugOutput);
 		PrintToServer(szDebugOutput);
-	}
+  #endif
 	delete hook;
 
 	CPrintToChat(iClient, "{blue}[SurfTimer-Discord] %t", "BugReport Sent");
@@ -470,12 +468,11 @@ public void SendCallAdmin(int iClient, char[] szText)
 	}
 
 	hook.AddEmbed(embed);
-	if (g_bDebugging)
-	{
+  #if defined DEBUG
 		char szDebugOutput[10000];
 		hook.ToString(szDebugOutput, sizeof szDebugOutput);
 		PrintToServer(szDebugOutput);
-	}
+  #endif
 	hook.Execute(webhook, OnWebHookExecuted, iClient);
 	delete hook;
 
@@ -585,12 +582,11 @@ public void mapchallenge_OnNewChallenge(int client, char szMapName[32], int styl
 
 	hook.AddEmbed(embed);
 	hook.Execute(webhook, OnWebHookExecuted, client);
-	if (g_bDebugging)
-	{
+  #if defined DEBUG
 		char szDebugOutput[10000];
 		hook.ToString(szDebugOutput, sizeof szDebugOutput);
 		PrintToServer(szDebugOutput);
-	}
+  #endif
 	delete hook;
 }
 
@@ -719,12 +715,11 @@ public void mapchallenge_OnChallengeEnd(int client, char szMapName[32], int styl
 
 	hook.AddEmbed(embed);
 	hook.Execute(webhook, OnWebHookExecuted , client);
-	if (g_bDebugging)
-	{
+  #if defined DEBUG
 		char szDebugOutput[10000];
 		hook.ToString(szDebugOutput, sizeof szDebugOutput);
 		PrintToServer(szDebugOutput);
-	}
+  #endif
 	delete hook;
 }
 
@@ -863,12 +858,11 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 
 		hook.AddEmbed(embed);
 		hook.Execute(webhook, OnWebHookExecuted, client);
-		if (g_bDebugging)
-		{
+    #if defined DEBUG
 			char szDebugOutput[10000];
 			hook.ToString(szDebugOutput, sizeof szDebugOutput);
 			PrintToServer(szDebugOutput);
-		}
+    #endif
 		delete hook;
 	}
 	else
@@ -898,12 +892,11 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		}
 		hook.SetContent(szMessage);
 		hook.Execute(webhook, OnWebHookExecuted, client);
-		if (g_bDebugging)
-		{
+    #if defined DEBUG
 			char szDebugOutput[10000];
 			hook.ToString(szDebugOutput, sizeof szDebugOutput);
 			PrintToServer(szDebugOutput);
-		}
+    #endif
 		delete hook;
 	}
 }
@@ -995,8 +988,7 @@ stock bool IsValidClient(int iClient, bool bNoBots = true)
 
 public void OnWebHookExecuted(HTTPResponse response, int client)
 {
-	if (g_bDebugging)
-	{
+	#if defined DEBUG
 		PrintToServer("Processed client n°%d's webhook, status %d", client, response.Status);
 		if (response.Status != HTTPStatus_NoContent)
 		{
@@ -1004,5 +996,5 @@ public void OnWebHookExecuted(HTTPResponse response, int client)
 			return;
 		}
 		PrintToServer("The webhook has been sent successfuly.");
-	}
+  #endif
 }
