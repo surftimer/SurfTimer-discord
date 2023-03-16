@@ -201,10 +201,10 @@ public void OnClientConnected(int iClient)
 public Action CommandDiscordTest(int client, int args)
 {
 	if (client == 0)
-  {
-    CReplyToCommand(0, "This command is only available in game.");
-    return Plugin_Handled;
-  }
+	{
+		CReplyToCommand(0, "This command is only available in game.");
+		return Plugin_Handled;
+	}
 	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending main record test message.");
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", -1);
 	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
@@ -217,30 +217,33 @@ public Action CommandDiscordTest(int client, int args)
 	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", -1);
 	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} stage record test message.");
 	surftimer_OnNewWRCP(client, 5, "00:00:00", "-00:00:00", 3, 0.0);
-	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}Challenge{green} test message.");
 	
-	mapchallenge_OnNewChallenge(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001");
+	if (g_bIsChallengeEnabled)
+	{
+		CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}Challenge{green} test message.");
+		mapchallenge_OnNewChallenge(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001");
 
-	ArrayList szTop5 = new ArrayList(sizeof TOP5_entry);
-	TOP5_entry temp;
+		ArrayList szTop5 = new ArrayList(sizeof TOP5_entry);
+		TOP5_entry temp;
 
-	temp.szPlayerName = "gaben";
-	temp.szRuntimeFormatted = "00:10.000";
-	temp.szRuntimeDifference = "00:00:000";
-	szTop5.PushArray(temp, sizeof temp);
-
-	temp.szPlayerName = "marcelo";
-	temp.szRuntimeFormatted = "00:05.000";
-	temp.szRuntimeDifference = "00:05:000";
-	szTop5.PushArray(temp, sizeof temp);
-
-	temp.szPlayerName = "";
-	temp.szRuntimeFormatted = "";
-	temp.szRuntimeDifference = "";
-	for(int i = 0; i < 4; i++)
+		temp.szPlayerName = "gaben";
+		temp.szRuntimeFormatted = "00:10.000";
+		temp.szRuntimeDifference = "00:00:000";
 		szTop5.PushArray(temp, sizeof temp);
 
-	mapchallenge_OnChallengeEnd(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001", szTop5, 666);
+		temp.szPlayerName = "marcelo";
+		temp.szRuntimeFormatted = "00:05.000";
+		temp.szRuntimeDifference = "00:05:000";
+		szTop5.PushArray(temp, sizeof temp);
+
+		temp.szPlayerName = "";
+		temp.szRuntimeFormatted = "";
+		temp.szRuntimeDifference = "";
+		for(int i = 0; i < 4; i++)
+			szTop5.PushArray(temp, sizeof temp);
+
+		mapchallenge_OnChallengeEnd(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001", szTop5, 666);
+	}
 	
 	return Plugin_Handled;
 }
