@@ -7,6 +7,7 @@
 #include <mapchallenge>
 #pragma newdecls required
 #pragma semicolon 1
+// #define DEBUG // Enable this line and compile again to enable DEBUG messages
 
 public Plugin myinfo =
 {
@@ -392,11 +393,11 @@ public void SendBugReport(int iClient, char[] szText)
 
 	hook.AddEmbed(embed);
 	hook.Execute(webhook, OnWebHookExecuted, iClient);
-  #if defined DEBUG
+	#if defined DEBUG
 		char szDebugOutput[10000];
 		hook.ToString(szDebugOutput, sizeof szDebugOutput);
 		PrintToServer(szDebugOutput);
-  #endif
+	#endif
 	delete hook;
 
 	CPrintToChat(iClient, "{blue}[SurfTimer-Discord] %t", "BugReport Sent");
@@ -471,11 +472,11 @@ public void SendCallAdmin(int iClient, char[] szText)
 	}
 
 	hook.AddEmbed(embed);
-  #if defined DEBUG
+	#if defined DEBUG
 		char szDebugOutput[10000];
 		hook.ToString(szDebugOutput, sizeof szDebugOutput);
 		PrintToServer(szDebugOutput);
-  #endif
+	#endif
 	hook.Execute(webhook, OnWebHookExecuted, iClient);
 	delete hook;
 
@@ -585,11 +586,11 @@ public void mapchallenge_OnNewChallenge(int client, char szMapName[32], int styl
 
 	hook.AddEmbed(embed);
 	hook.Execute(webhook, OnWebHookExecuted, client);
-  #if defined DEBUG
+	#if defined DEBUG
 		char szDebugOutput[10000];
 		hook.ToString(szDebugOutput, sizeof szDebugOutput);
 		PrintToServer(szDebugOutput);
-  #endif
+	#endif
 	delete hook;
 }
 
@@ -718,11 +719,11 @@ public void mapchallenge_OnChallengeEnd(int client, char szMapName[32], int styl
 
 	hook.AddEmbed(embed);
 	hook.Execute(webhook, OnWebHookExecuted , client);
-  #if defined DEBUG
+	#if defined DEBUG
 		char szDebugOutput[10000];
 		hook.ToString(szDebugOutput, sizeof szDebugOutput);
 		PrintToServer(szDebugOutput);
-  #endif
+	#endif
 	delete hook;
 }
 
@@ -861,11 +862,11 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 
 		hook.AddEmbed(embed);
 		hook.Execute(webhook, OnWebHookExecuted, client);
-    #if defined DEBUG
+		#if defined DEBUG
 			char szDebugOutput[10000];
 			hook.ToString(szDebugOutput, sizeof szDebugOutput);
 			PrintToServer(szDebugOutput);
-    #endif
+		#endif
 		delete hook;
 	}
 	else
@@ -895,11 +896,11 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		}
 		hook.SetContent(szMessage);
 		hook.Execute(webhook, OnWebHookExecuted, client);
-    #if defined DEBUG
+		#if defined DEBUG
 			char szDebugOutput[10000];
 			hook.ToString(szDebugOutput, sizeof szDebugOutput);
 			PrintToServer(szDebugOutput);
-    #endif
+		#endif
 		delete hook;
 	}
 }
@@ -996,8 +997,18 @@ public void OnWebHookExecuted(HTTPResponse response, int client)
 		if (response.Status != HTTPStatus_NoContent)
 		{
 			PrintToServer("An error has occured while sending the webhook.");
+			JSONObject objects   = view_as<JSONObject>(response.Data);
+			char responseMsg[1000];
+			if (objects.GetString("message", responseMsg, sizeof(responseMsg)))
+			{
+				PrintToServer("Discord API reply message: %s", responseMsg);
+				int responseCode = objects.GetInt("code");
+				PrintToServer("Discord API reply code: %i", responseCode);
+			}
+			
+			delete objects;
 			return;
 		}
 		PrintToServer("The webhook has been sent successfuly.");
-  #endif
+  	#endif
 }
