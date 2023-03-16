@@ -1,6 +1,12 @@
 ﻿## Release Notes
 
 
+## [2.5.7]
+
+### Fixed
+
+- Fixed test command sending Map-Challenge webhook despite the plugin not running on the server.
+
 ## [2.5.6]
 
 ### Added
