@@ -1,6 +1,16 @@
 ﻿## Release Notes
 
 
+## [2.5.7]
+
+### Added
+
+- Added more server console prints on failed webhook execution.
+
+### Fixed
+
+- Fixed test command sending Map-Challenge webhook despite the plugin not running on the server.
+
 ## [2.5.6]
 
 ### Added

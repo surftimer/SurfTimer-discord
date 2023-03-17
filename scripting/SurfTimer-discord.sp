@@ -7,13 +7,14 @@
 #include <mapchallenge>
 #pragma newdecls required
 #pragma semicolon 1
+// #define DEBUG // Enable this line and compile again to enable DEBUG messages
 
 public Plugin myinfo =
 {
 	name        = "SurfTimer-Discord",
 	author      = "Sarrus",
 	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
-	version     = "2.5.6",
+	version     = "2.5.7",
 	url         = "https://github.com/Sarrus1/SurfTimer-discord"
 };
 
@@ -201,10 +202,10 @@ public void OnClientConnected(int iClient)
 public Action CommandDiscordTest(int client, int args)
 {
 	if (client == 0)
-  {
-    CReplyToCommand(0, "This command is only available in game.");
-    return Plugin_Handled;
-  }
+	{
+		CReplyToCommand(0, "This command is only available in game.");
+		return Plugin_Handled;
+	}
 	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending main record test message.");
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", -1);
 	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
@@ -217,30 +218,33 @@ public Action CommandDiscordTest(int client, int args)
 	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", -1);
 	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} stage record test message.");
 	surftimer_OnNewWRCP(client, 5, "00:00:00", "-00:00:00", 3, 0.0);
-	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}Challenge{green} test message.");
 	
-	mapchallenge_OnNewChallenge(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001");
+	if (g_bIsChallengeEnabled)
+	{
+		CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}Challenge{green} test message.");
+		mapchallenge_OnNewChallenge(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001");
 
-	ArrayList szTop5 = new ArrayList(sizeof TOP5_entry);
-	TOP5_entry temp;
+		ArrayList szTop5 = new ArrayList(sizeof TOP5_entry);
+		TOP5_entry temp;
 
-	temp.szPlayerName = "gaben";
-	temp.szRuntimeFormatted = "00:10.000";
-	temp.szRuntimeDifference = "00:00:000";
-	szTop5.PushArray(temp, sizeof temp);
-
-	temp.szPlayerName = "marcelo";
-	temp.szRuntimeFormatted = "00:05.000";
-	temp.szRuntimeDifference = "00:05:000";
-	szTop5.PushArray(temp, sizeof temp);
-
-	temp.szPlayerName = "";
-	temp.szRuntimeFormatted = "";
-	temp.szRuntimeDifference = "";
-	for(int i = 0; i < 4; i++)
+		temp.szPlayerName = "gaben";
+		temp.szRuntimeFormatted = "00:10.000";
+		temp.szRuntimeDifference = "00:00:000";
 		szTop5.PushArray(temp, sizeof temp);
 
-	mapchallenge_OnChallengeEnd(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001", szTop5, 666);
+		temp.szPlayerName = "marcelo";
+		temp.szRuntimeFormatted = "00:05.000";
+		temp.szRuntimeDifference = "00:05:000";
+		szTop5.PushArray(temp, sizeof temp);
+
+		temp.szPlayerName = "";
+		temp.szRuntimeFormatted = "";
+		temp.szRuntimeDifference = "";
+		for(int i = 0; i < 4; i++)
+			szTop5.PushArray(temp, sizeof temp);
+
+		mapchallenge_OnChallengeEnd(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001", szTop5, 666);
+	}
 	
 	return Plugin_Handled;
 }
@@ -389,11 +393,11 @@ public void SendBugReport(int iClient, char[] szText)
 
 	hook.AddEmbed(embed);
 	hook.Execute(webhook, OnWebHookExecuted, iClient);
-  #if defined DEBUG
+	#if defined DEBUG
 		char szDebugOutput[10000];
 		hook.ToString(szDebugOutput, sizeof szDebugOutput);
 		PrintToServer(szDebugOutput);
-  #endif
+	#endif
 	delete hook;
 
 	CPrintToChat(iClient, "{blue}[SurfTimer-Discord] %t", "BugReport Sent");
@@ -468,11 +472,11 @@ public void SendCallAdmin(int iClient, char[] szText)
 	}
 
 	hook.AddEmbed(embed);
-  #if defined DEBUG
+	#if defined DEBUG
 		char szDebugOutput[10000];
 		hook.ToString(szDebugOutput, sizeof szDebugOutput);
 		PrintToServer(szDebugOutput);
-  #endif
+	#endif
 	hook.Execute(webhook, OnWebHookExecuted, iClient);
 	delete hook;
 
@@ -582,11 +586,11 @@ public void mapchallenge_OnNewChallenge(int client, char szMapName[32], int styl
 
 	hook.AddEmbed(embed);
 	hook.Execute(webhook, OnWebHookExecuted, client);
-  #if defined DEBUG
+	#if defined DEBUG
 		char szDebugOutput[10000];
 		hook.ToString(szDebugOutput, sizeof szDebugOutput);
 		PrintToServer(szDebugOutput);
-  #endif
+	#endif
 	delete hook;
 }
 
@@ -715,11 +719,11 @@ public void mapchallenge_OnChallengeEnd(int client, char szMapName[32], int styl
 
 	hook.AddEmbed(embed);
 	hook.Execute(webhook, OnWebHookExecuted , client);
-  #if defined DEBUG
+	#if defined DEBUG
 		char szDebugOutput[10000];
 		hook.ToString(szDebugOutput, sizeof szDebugOutput);
 		PrintToServer(szDebugOutput);
-  #endif
+	#endif
 	delete hook;
 }
 
@@ -858,11 +862,11 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 
 		hook.AddEmbed(embed);
 		hook.Execute(webhook, OnWebHookExecuted, client);
-    #if defined DEBUG
+		#if defined DEBUG
 			char szDebugOutput[10000];
 			hook.ToString(szDebugOutput, sizeof szDebugOutput);
 			PrintToServer(szDebugOutput);
-    #endif
+		#endif
 		delete hook;
 	}
 	else
@@ -892,11 +896,11 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		}
 		hook.SetContent(szMessage);
 		hook.Execute(webhook, OnWebHookExecuted, client);
-    #if defined DEBUG
+		#if defined DEBUG
 			char szDebugOutput[10000];
 			hook.ToString(szDebugOutput, sizeof szDebugOutput);
 			PrintToServer(szDebugOutput);
-    #endif
+		#endif
 		delete hook;
 	}
 }
@@ -993,8 +997,18 @@ public void OnWebHookExecuted(HTTPResponse response, int client)
 		if (response.Status != HTTPStatus_NoContent)
 		{
 			PrintToServer("An error has occured while sending the webhook.");
+			JSONObject objects   = view_as<JSONObject>(response.Data);
+			char responseMsg[1000];
+			if (objects.GetString("message", responseMsg, sizeof(responseMsg)))
+			{
+				PrintToServer("Discord API reply message: %s", responseMsg);
+				int responseCode = objects.GetInt("code");
+				PrintToServer("Discord API reply code: %i", responseCode);
+			}
+			
+			delete objects;
 			return;
 		}
 		PrintToServer("The webhook has been sent successfuly.");
-  #endif
+  	#endif
 }
