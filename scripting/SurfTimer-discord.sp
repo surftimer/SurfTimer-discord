@@ -879,8 +879,8 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		field = new EmbedField("Map Tier", MapTier, true);
 		embed.AddField(field);
 
-		/* */
-		if(strlen(checkpoints) > 0 && bonusGroup == -1 && stage < 1)
+		/* Add checkpoints to an EmbedField - Limitations https://discord.com/developers/docs/resources/channel#embed-object-embed-field-structure */
+		if(strlen(checkpoints) > 0 && strlen(checkpoints) < 1050 && bonusGroup == -1 && stage < 1)
 		{
 			field = new EmbedField("Checkpoints", checkpoints, true);
 			embed.AddField(field);
