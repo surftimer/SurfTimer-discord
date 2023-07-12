@@ -7,7 +7,7 @@
 #include <mapchallenge>
 #pragma newdecls required
 #pragma semicolon 1
-#define DEBUG // Enable this line and compile again to enable DEBUG messages
+// #define DEBUG // Enable this line and compile again to enable DEBUG messages
 
 public Plugin myinfo =
 {
@@ -242,16 +242,16 @@ public Action CommandDiscordTest(int client, int args)
 
 	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending main record test message.");
 	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", -1, testArray);
-	// CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
-	// surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", 1, testArray);
-	// CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending stage record test message.");
-	// surftimer_OnNewWRCP(client, 0, "00:00:00", "-00:00:00", 3, 0.0);
-	// CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} bonus record test message.");
-	// surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", 1, testArray);
-	// CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} main record test message.");
-	// surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", -1, testArray);
-	// CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} stage record test message.");
-	// surftimer_OnNewWRCP(client, 5, "00:00:00", "-00:00:00", 3, 0.0);
+	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
+	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", 1, testArray);
+	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending stage record test message.");
+	surftimer_OnNewWRCP(client, 0, "00:00:00", "-00:00:00", 3, 0.0);
+	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} bonus record test message.");
+	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", 1, testArray);
+	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} main record test message.");
+	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", -1, testArray);
+	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} stage record test message.");
+	surftimer_OnNewWRCP(client, 5, "00:00:00", "-00:00:00", 3, 0.0);
 	
 	if (g_bIsChallengeEnabled)
 	{
@@ -279,9 +279,6 @@ public Action CommandDiscordTest(int client, int args)
 
 		mapchallenge_OnChallengeEnd(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001", szTop5, 666);
 	}
-	
-	// delete testArray;
-	// PrintToServer("======== deleted testArray");
 	return Plugin_Handled;
 }
 
@@ -537,11 +534,11 @@ public void surftimer_OnNewRecord(int client, int style, char[] time, char[] tim
 			checkpoints.GetArray(i, temp, sizeof(temp));
 			if(i == 0)
 			{
-				Format(cpsFinalString, sizeof(cpsFinalString), "%i WR: %s | PB: %s | %s", temp.cpNumber, temp.wrDifference, temp.pbDifference, temp.runtime);
+				Format(cpsFinalString, sizeof(cpsFinalString), "%i. WR: %s | PB: %s | %s", temp.cpNumber, temp.wrDifference, temp.pbDifference, temp.runtime);
 			}
 			else
 			{
-				Format(cpsFinalString, sizeof(cpsFinalString), "%s\n%i WR: %s | PB: %s | %s", cpsFinalString, temp.cpNumber, temp.wrDifference, temp.pbDifference, temp.runtime);
+				Format(cpsFinalString, sizeof(cpsFinalString), "%s\n%i. WR: %s | PB: %s | %s", cpsFinalString, temp.cpNumber, temp.wrDifference, temp.pbDifference, temp.runtime);
 			}
 		}
 		ReplaceString(cpsFinalString, sizeof(cpsFinalString), "00:0", "");
@@ -553,7 +550,6 @@ public void surftimer_OnNewRecord(int client, int style, char[] time, char[] tim
 		GetProfilePictureURL(client, style, time, timeDif, bonusGroup, -1, cpsFinalString);
 	else
 		sendDiscordAnnouncement(client, style, time, timeDif, bonusGroup, -1, cpsFinalString);
-	delete checkpoints;
 }
 
 public void surftimer_OnNewWRCP(int client, int style, char[] time, char[] timeDif, int stage, float fRunTime)
@@ -883,9 +879,8 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		field = new EmbedField("Map Tier", MapTier, true);
 		embed.AddField(field);
 
-		PrintToServer("===== checkpoints : %s", checkpoints);
 		/* */
-		if(strlen(checkpoints) > 0)
+		if(strlen(checkpoints) > 0 && bonusGroup == -1 && stage < 1)
 		{
 			field = new EmbedField("Checkpoints", checkpoints, true);
 			embed.AddField(field);
@@ -927,11 +922,6 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		}
 
 		hook.AddEmbed(embed);
-		char szDebugOutput2[10000];
-		hook.ToString(szDebugOutput2, sizeof szDebugOutput2);
-		hook.ToFile("discord.json", JSON_INDENT(4));
-		PrintToServer(szDebugOutput2);
-
 		hook.Execute(webhook, OnWebHookExecuted, client);
 		#if defined DEBUG
 			char szDebugOutput[10000];
@@ -1032,7 +1022,6 @@ stock void OnResponseReceived(HTTPResponse response, DataPack pack)
 	delete Response;
 	delete players;
 	delete player;
-	PrintToServer("==OnResponseReceived=== checkpoints : %s", checkpoints);
 	sendDiscordAnnouncement(client, style, szTime, szTimeDif, bonusGroup, stage, checkpoints);
 }
 
@@ -1067,32 +1056,27 @@ stock bool IsValidClient(int iClient, bool bNoBots = true)
 
 public void OnWebHookExecuted(HTTPResponse response, int client)
 {
-	PrintToServer("============ response.Status %d", response.Status);
 	#if defined DEBUG
 		PrintToServer("Processed client n°%d's webhook, status %d", client, response.Status);
-		if (response.Status != HTTPStatus_NoContent)
+		if (response.Status != HTTPStatus_OK)
 		{
 			PrintToServer("An error has occured while sending the webhook.");
 			JSONObject objects   = view_as<JSONObject>(response.Data);
 			char responseMsg[1000];
 			if (objects.GetString("message", responseMsg, sizeof(responseMsg)))
 			{
-				PrintToServer("Discord API reply message: %s", responseMsg);
-				int responseCode = objects.GetInt("code");
-				PrintToServer("Discord API reply code: %i", responseCode);
+				PrintToServer("-- Discord API reply message: %s", responseMsg);
+				if (StrContains(responseMsg, "rate limited") > -1)
+				{
+					float retry = objects.GetFloat("retry_after");
+					PrintToServer("-- You are being rate limited, please try again after %f", retry);
+				}
+				else
+				{
+					int responseCode = objects.GetInt("code");
+					PrintToServer("-- Discord API reply code: %i", responseCode);
+				}
 			}
-			
-			// char rspns[10000];
-			// JSONObjectKeys objectKeys = objects.Keys();
-			// while(objectKeys.ReadKey(responseMsg, sizeof(responseMsg)))
-			// {
-			// 	PrintToServer("Key: %s", responseMsg);
-			// 	objects.GetString(responseMsg, rspns, sizeof(rspns));
-			// 	PrintToServer("Key: %s | Value: %s", responseMsg, rspns);
-			// }
-
-			// PrintToServer("Response.Data = %s", response.Data);
-
 			delete objects;
 			return;
 		}
