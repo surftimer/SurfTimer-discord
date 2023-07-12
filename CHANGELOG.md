@@ -1,6 +1,12 @@
 ﻿## Release Notes
 
 
+## [2.5.8]
+
+### Fixed
+
+- Fixed handles being deleted twice.
+
 ## [2.5.7]
 
 ### Added
