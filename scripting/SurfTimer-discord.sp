@@ -525,7 +525,7 @@ public void OnMapStart()
 
 public void surftimer_OnNewRecord(int client, int style, char[] time, char[] timeDif, int bonusGroup, ArrayList checkpoints)
 {
-	char cpsFinalString[300];
+	char cpsFinalString[1100];
 	if(checkpoints != null && checkpoints.Length > 0)
 	{
 		RunCheckpoints temp;
@@ -1006,7 +1006,7 @@ stock void OnResponseReceived(HTTPResponse response, DataPack pack)
 	ReadPackString(pack, szTimeDif, sizeof szTimeDif);
 	int bonusGroup = pack.ReadCell();
 	int stage      = pack.ReadCell();
-	char checkpoints[300];
+	char checkpoints[1100];
 	ReadPackString(pack, checkpoints, sizeof(checkpoints));
 
 	if (response.Status != HTTPStatus_OK)
