@@ -880,7 +880,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		embed.AddField(field);
 
 		/* Add checkpoints to an EmbedField - Limitations https://discord.com/developers/docs/resources/channel#embed-object-embed-field-structure */
-		char tempCps[1000];
+		char tempCps[1100];
 		StrCat(tempCps, sizeof(tempCps), checkpoints);
 		ReplaceString(tempCps, sizeof(tempCps), "\n", "");
 		ReplaceString(tempCps, sizeof(tempCps), "```fix", "");
