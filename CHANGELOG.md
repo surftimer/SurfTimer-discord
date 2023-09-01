@@ -1,4 +1,4 @@
-﻿## Release Notes
+## Release Notes
 
 
 ## [2.5.9]
