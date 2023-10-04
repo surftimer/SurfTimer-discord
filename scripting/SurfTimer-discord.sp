@@ -14,7 +14,7 @@ public Plugin myinfo =
 	name        = "SurfTimer-Discord",
 	author      = "Sarrus",
 	description = "A module for SurfTimer-Official to send Discord Notifications when a new record is set.",
-	version     = "2.5.8",
+	version     = "2.5.9",
 	url         = "https://github.com/Sarrus1/SurfTimer-discord"
 };
 
@@ -71,6 +71,15 @@ enum struct TOP5_entry{
 	char szPlayerName[MAX_NAME_LENGTH];
 	char szRuntimeFormatted[32];
 	char szRuntimeDifference[32];
+}
+
+enum struct RunCheckpoints
+{
+	int cpNumber;
+	int style;
+	char runtime[32];
+	char wrDifference[32];
+	char pbDifference[32];
 }
 
 WaitingFor g_iWaitingFor[MAXPLAYERS + 1];
@@ -206,16 +215,41 @@ public Action CommandDiscordTest(int client, int args)
 		CReplyToCommand(0, "This command is only available in game.");
 		return Plugin_Handled;
 	}
+	ArrayList testArray;
+	testArray = new ArrayList(sizeof(RunCheckpoints));
+
+	RunCheckpoints cpEnum;
+	cpEnum.cpNumber = 1;
+	cpEnum.runtime = "01:00.00";
+	cpEnum.pbDifference = "-00:00.00";
+	cpEnum.wrDifference = "-00:00.00";
+	cpEnum.style = 0;
+	testArray.PushArray(cpEnum, sizeof(RunCheckpoints));
+
+	cpEnum.cpNumber = 2;
+	cpEnum.runtime = "02:00.00";
+	cpEnum.pbDifference = "-00:00.00";
+	cpEnum.wrDifference = "-00:00.00";
+	cpEnum.style = 0;
+	testArray.PushArray(cpEnum, sizeof(RunCheckpoints));
+
+	cpEnum.cpNumber = 3;
+	cpEnum.runtime = "03:00.00";
+	cpEnum.pbDifference = "-00:00.00";
+	cpEnum.wrDifference = "-00:00.00";
+	cpEnum.style = 0;
+	testArray.PushArray(cpEnum, sizeof(RunCheckpoints));
+
 	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending main record test message.");
-	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", -1);
+	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", -1, testArray);
 	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending bonus record test message.");
-	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", 1);
+	surftimer_OnNewRecord(client, 0, "00:00:00", "-00:00:00", 1, testArray);
 	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending stage record test message.");
 	surftimer_OnNewWRCP(client, 0, "00:00:00", "-00:00:00", 3, 0.0);
 	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} bonus record test message.");
-	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", 1);
+	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", 1, testArray);
 	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} main record test message.");
-	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", -1);
+	surftimer_OnNewRecord(client, 5, "00:00:00", "-00:00:00", -1, testArray);
 	CReplyToCommand(client, "{blue}[SurfTimer-Discord] {green}Sending {red}styled{green} stage record test message.");
 	surftimer_OnNewWRCP(client, 5, "00:00:00", "-00:00:00", 3, 0.0);
 	
@@ -245,7 +279,6 @@ public Action CommandDiscordTest(int client, int args)
 
 		mapchallenge_OnChallengeEnd(client, "surf_beginner", 0, 420, "Mon Jan 1 00:00:00 1969", "Thu Aug 23 14:55:02 2001", szTop5, 666);
 	}
-	
 	return Plugin_Handled;
 }
 
@@ -490,20 +523,41 @@ public void OnMapStart()
 	GetConVarString(g_cvSteamWebAPIKey, g_szApiKey, sizeof g_szApiKey);
 }
 
-public void surftimer_OnNewRecord(int client, int style, char[] time, char[] timeDif, int bonusGroup)
+public void surftimer_OnNewRecord(int client, int style, char[] time, char[] timeDif, int bonusGroup, ArrayList checkpoints)
 {
+	char cpsFinalString[1100];
+	if(checkpoints != null && checkpoints.Length > 0)
+	{
+		RunCheckpoints temp;
+		for(int i = 0; i <= checkpoints.Length-1; i++)
+		{
+			checkpoints.GetArray(i, temp, sizeof(temp));
+			if(i == 0)
+			{
+				Format(cpsFinalString, sizeof(cpsFinalString), "%i. WR: %s | PB: %s | %s", temp.cpNumber, temp.wrDifference, temp.pbDifference, temp.runtime);
+			}
+			else
+			{
+				Format(cpsFinalString, sizeof(cpsFinalString), "%s\n%i. WR: %s | PB: %s | %s", cpsFinalString, temp.cpNumber, temp.wrDifference, temp.pbDifference, temp.runtime);
+			}
+		}
+		ReplaceString(cpsFinalString, sizeof(cpsFinalString), "00:0", "");
+		ReplaceString(cpsFinalString, sizeof(cpsFinalString), "00:", "");
+		Format(cpsFinalString, sizeof(cpsFinalString), "```fix\n%s\n```", cpsFinalString);
+	}
+	
 	if (strncmp(g_szApiKey, "", 1) != 0)
-		GetProfilePictureURL(client, style, time, timeDif, bonusGroup, -1);
+		GetProfilePictureURL(client, style, time, timeDif, bonusGroup, -1, cpsFinalString);
 	else
-		sendDiscordAnnouncement(client, style, time, timeDif, bonusGroup, -1);
+		sendDiscordAnnouncement(client, style, time, timeDif, bonusGroup, -1, cpsFinalString);
 }
 
 public void surftimer_OnNewWRCP(int client, int style, char[] time, char[] timeDif, int stage, float fRunTime)
 {
 	if (strncmp(g_szApiKey, "", 1) != 0)
-		GetProfilePictureURL(client, style, time, timeDif, -1, stage);
+		GetProfilePictureURL(client, style, time, timeDif, -1, stage, "");
 	else
-		sendDiscordAnnouncement(client, style, time, timeDif, -1, stage);
+		sendDiscordAnnouncement(client, style, time, timeDif, -1, stage, "");
 }
 
 public void mapchallenge_OnNewChallenge(int client, char szMapName[32], int style, int points, char szInitial_Timestamp[32], char szFinal_Timestamp[32]){
@@ -727,7 +781,7 @@ public void mapchallenge_OnChallengeEnd(int client, char szMapName[32], int styl
 	delete hook;
 }
 
-stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] szTimeDif, int bonusGroup, int stage)
+stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] szTimeDif, int bonusGroup, int stage, char[] checkpoints)
 {
 	// Get the WebHook
 	char webhook[1024], webhookName[1024];
@@ -825,6 +879,19 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 		field = new EmbedField("Map Tier", MapTier, true);
 		embed.AddField(field);
 
+		/* Add checkpoints to an EmbedField - Limitations https://discord.com/developers/docs/resources/channel#embed-object-embed-field-structure */
+		char tempCps[1100];
+		StrCat(tempCps, sizeof(tempCps), checkpoints);
+		ReplaceString(tempCps, sizeof(tempCps), "\n", "");
+		ReplaceString(tempCps, sizeof(tempCps), "```fix", "");
+		ReplaceString(tempCps, sizeof(tempCps), "```", "");
+		ReplaceString(tempCps, sizeof(tempCps), " ", "");
+		if(strlen(checkpoints) > 0 && strlen(tempCps) < 1024 && bonusGroup == -1 && stage < 1)
+		{
+			field = new EmbedField("Checkpoints", checkpoints, true);
+			embed.AddField(field);
+		}
+
 		char szUrlMain[1024];
 		GetConVarString(g_cvMainUrlRoot, szUrlMain, 1024);
 		StrCat(szUrlMain, sizeof szUrlMain, g_szCurrentMap);
@@ -905,7 +972,7 @@ stock void sendDiscordAnnouncement(int client, int style, char[] szTime, char[] 
 	}
 }
 
-stock void GetProfilePictureURL(int client, int style, char[] time, char[] timeDif, int bonusGroup, int stage)
+stock void GetProfilePictureURL(int client, int style, char[] time, char[] timeDif, int bonusGroup, int stage, char[] checkpoints)
 {
 	DataPack pack = new DataPack();
 	pack.WriteCell(client);
@@ -914,6 +981,7 @@ stock void GetProfilePictureURL(int client, int style, char[] time, char[] timeD
 	pack.WriteString(timeDif);
 	pack.WriteCell(bonusGroup);
 	pack.WriteCell(stage);
+	pack.WriteString(checkpoints);
 	pack.Reset();
 
 	char szRequestBuffer[1024], szSteamID[64];
@@ -938,6 +1006,8 @@ stock void OnResponseReceived(HTTPResponse response, DataPack pack)
 	ReadPackString(pack, szTimeDif, sizeof szTimeDif);
 	int bonusGroup = pack.ReadCell();
 	int stage      = pack.ReadCell();
+	char checkpoints[1100];
+	ReadPackString(pack, checkpoints, sizeof(checkpoints));
 
 	if (response.Status != HTTPStatus_OK)
 		return;
@@ -958,7 +1028,7 @@ stock void OnResponseReceived(HTTPResponse response, DataPack pack)
 	delete Response;
 	delete players;
 	delete player;
-	sendDiscordAnnouncement(client, style, szTime, szTimeDif, bonusGroup, stage);
+	sendDiscordAnnouncement(client, style, szTime, szTimeDif, bonusGroup, stage, checkpoints);
 }
 
 stock void RemoveWorkshop(char[] szMapName, int len)
@@ -994,18 +1064,25 @@ public void OnWebHookExecuted(HTTPResponse response, int client)
 {
 	#if defined DEBUG
 		PrintToServer("Processed client n°%d's webhook, status %d", client, response.Status);
-		if (response.Status != HTTPStatus_NoContent)
+		if (response.Status != HTTPStatus_OK)
 		{
 			PrintToServer("An error has occured while sending the webhook.");
 			JSONObject objects   = view_as<JSONObject>(response.Data);
 			char responseMsg[1000];
 			if (objects.GetString("message", responseMsg, sizeof(responseMsg)))
 			{
-				PrintToServer("Discord API reply message: %s", responseMsg);
-				int responseCode = objects.GetInt("code");
-				PrintToServer("Discord API reply code: %i", responseCode);
+				PrintToServer("-- Discord API reply message: %s", responseMsg);
+				if (StrContains(responseMsg, "rate limited") > -1)
+				{
+					float retry = objects.GetFloat("retry_after");
+					PrintToServer("-- You are being rate limited, please try again after %f", retry);
+				}
+				else
+				{
+					int responseCode = objects.GetInt("code");
+					PrintToServer("-- Discord API reply code: %i", responseCode);
+				}
 			}
-			
 			delete objects;
 			return;
 		}

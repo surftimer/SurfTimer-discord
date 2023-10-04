@@ -1,5 +1,11 @@
-﻿## Release Notes
+## Release Notes
 
+
+## [2.5.9]
+
+### Added
+
+- Checkpoints difference for records is now sent to the Discord Webhook and shown in the embed.
 
 ## [2.5.8]
 
